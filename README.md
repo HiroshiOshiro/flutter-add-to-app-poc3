@@ -31,6 +31,7 @@
 - `legacy_android/` — 移行前のAndroidアプリ（Java）
 - `legacy_ios/` — 移行前のiOSアプリ（Objective-C）
 - `docs/MIGRATION_GUIDE.md` — add-to-app の導入手順
+- `legacyapp_flutter/` — Flutterモジュール
 - `docs/WORK_LOG.md` — 作業ログ（各節の記録とPRリンク）
 
 ## 進捗
@@ -38,7 +39,7 @@
 | ステップ（MIGRATION_GUIDE の節） | 状態 |
 |---|---|
 | 0. 事前確認 | 完了 |
-| 2. Flutterモジュールを作る | 未着手 |
+| 2. Flutterモジュールを作る | 完了 |
 | 3. Androidへ組み込む（source module） | 未着手 |
 | 4. iOSへ組み込む（SPM） | 未着手 |
 | 5. Flutter画面を表示する | 未着手 |
