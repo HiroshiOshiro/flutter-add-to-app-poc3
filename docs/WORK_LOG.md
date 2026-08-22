@@ -238,7 +238,7 @@ $ ./gradlew projects
 
 ## 4節: iOSへ組み込む（Swift Package Manager）
 
-PR: (作成中)
+PR: https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/4
 
 ### 方式（4.1節）
 
