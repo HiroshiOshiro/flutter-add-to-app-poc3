@@ -6,12 +6,22 @@ pluginManagement {
     }
 }
 dependencyResolutionManagement {
-    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    // Flutterのgradleプラグインはプロジェクトレベルで独自にリポジトリを追加するため、
+    // FAIL_ON_PROJECT_REPOS のままだとビルドが失敗する。
+    repositoriesMode = RepositoriesMode.PREFER_SETTINGS
     repositories {
         google()
         mavenCentral()
+        // Flutterエンジン本体の配布先
+        maven { url = uri("https://storage.googleapis.com/download.flutter.io") }
     }
 }
 
 rootProject.name = "LegacyApp"
-include ':app'
+include(":app")
+
+// Flutterモジュールを source module として取り込む。
+// 追加されるサブプロジェクト名は ':flutter' に固定されている。
+setBinding(new Binding([gradle: this]))
+def filePath = settingsDir.parentFile.toString() + "/legacyapp_flutter/.android/include_flutter.groovy"
+apply from: filePath
