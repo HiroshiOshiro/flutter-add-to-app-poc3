@@ -312,7 +312,7 @@ SPM方式では `.xcworkspace` は生成されないため、`-project` でビ�
 
 ## 5節: Flutter画面を表示する
 
-PR: (作成中)
+PR: https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/5
 
 ガイド0.5節の方針により、この節で作るのは**プレースホルダ**。ルート名を表示
 するだけで、UIの作り込みは7節の後に行う。
