@@ -90,3 +90,72 @@ $ (legacy_ios) xcodegen generate && xcodebuild ... build
 ### ガイドへのフィードバック
 
 なし。0.2節の表のとおりに確認でき、満たさない項目も表から特定できた。
+
+---
+
+## 2節: Flutterモジュールを作る
+
+PR: (作成中)
+
+### 作成
+
+```
+$ flutter create -t module --org com.example legacyapp_flutter
+All done!
+Your module code is in legacyapp_flutter/lib/main.dart.
+```
+
+### モジュール名（2.2節）
+
+ホストアプリ `legacyapp` に紐づけて `legacyapp_flutter` とした。
+
+Todo（メモ）の確認画面が最初のFlutter化対象だが、**将来Flutter化するすべての
+画面がこのモジュールに入る**ため、機能名を付けない。1アプリに1モジュールしか
+組み込めないという制約から、機能名を付けると2画面目で実態と合わなくなる。
+
+### androidPackage の確認（2.3節）
+
+```
+$ grep -A3 "^  module:" legacyapp_flutter/pubspec.yaml
+  module:
+    androidX: true
+    androidPackage: com.example.legacyapp_flutter
+    iosBundleIdentifier: com.example.legacyappFlutter
+
+$ grep "applicationId" legacy_android/app/build.gradle
+        applicationId "com.example.legacyapp"
+```
+
+`com.example.legacyapp_flutter` と `com.example.legacyapp` で異なるため
+問題なし。ガイドの記述どおり、モジュール名から自動生成されるので作業は不要
+だった。
+
+### 生成物の除外（2.1節）
+
+`.android/` と `.ios/` が生成された。`flutter pub get` のたびに再生成される
+ため、gitignoreに追加した。
+
+```gitignore
+legacyapp_flutter/.android/
+legacyapp_flutter/.ios/
+legacyapp_flutter/build/
+legacyapp_flutter/.dart_tool/
+legacyapp_flutter/.flutter-plugins-dependencies
+```
+
+### 確認
+
+```
+$ (legacyapp_flutter) flutter analyze
+No issues found!
+
+$ (legacyapp_flutter) flutter test
+All tests passed!
+```
+
+この時点ではテンプレートのカウンターアプリがそのまま入っている。5節で
+プレースホルダに置き換える。
+
+### ガイドへのフィードバック
+
+なし。手順どおりに完了した。
