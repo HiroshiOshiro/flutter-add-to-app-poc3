@@ -29,6 +29,17 @@
             android:name=".TrackDetailActivity"
             android:exported="false" />
 
+        <!-- Flutter画面を表示するActivity。画面をFlutter化しても増えない。
+             テーマはホストアプリ既存のものを指定する（@style/LaunchTheme は
+             既存アプリには存在しない）。 -->
+        <activity
+            android:name="io.flutter.embedding.android.FlutterActivity"
+            android:theme="@style/AppTheme"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
+            android:hardwareAccelerated="true"
+            android:windowSoftInputMode="adjustResize"
+            android:exported="false" />
+
     </application>
 
 </manifest>
