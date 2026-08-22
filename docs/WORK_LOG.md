@@ -159,3 +159,77 @@ All tests passed!
 ### ガイドへのフィードバック
 
 なし。手順どおりに完了した。
+
+---
+
+## 3節: Androidへ組み込む（source module）
+
+PR: https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/3
+
+### 組み込み方式（3.2節）
+
+**source module** を選択。Flutterを触る開発者が限られる段階ではなく、
+このプロジェクトでは全員がFlutterを扱う前提のため。
+
+### リポジトリ設定（3.1節）
+
+**条件の確認**: `repositoriesMode` が `FAIL_ON_PROJECT_REPOS` だった。
+
+```
+$ grep -n "repositoriesMode" legacy_android/settings.gradle
+9:    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+```
+
+ガイドの条件に該当したため、**組み込む前に**対処した。
+
+```groovy
+dependencyResolutionManagement {
+    repositoriesMode = RepositoriesMode.PREFER_SETTINGS
+    repositories {
+        google()
+        mavenCentral()
+        maven { url = uri("https://storage.googleapis.com/download.flutter.io") }
+    }
+}
+```
+
+ルートの `buildscript { repositories { ... } }` は残した。依存解決用の
+リポジトリとは別物で、削除するとビルドツール自体が解決できなくなる。
+
+### source module の取り込み（3.3-A節）
+
+```groovy
+// settings.gradle
+include(":app")
+setBinding(new Binding([gradle: this]))
+def filePath = settingsDir.parentFile.toString() + "/legacyapp_flutter/.android/include_flutter.groovy"
+apply from: filePath
+```
+
+```groovy
+// app/build.gradle
+implementation(project(":flutter"))
+```
+
+### 確認（3.5節）
+
+```
+$ ./gradlew assembleDebug
+BUILD SUCCESSFUL
+
+$ ./gradlew projects
++--- Project ':app'
+\--- Project ':flutter'
+```
+
+`:flutter` サブプロジェクトが追加されたことを確認した。名前は固定で、
+これが「1アプリに1モジュール」制約の実体になる。
+
+### ABIを絞る（3.4節）
+
+未設定のまま。ホストアプリに独自のABI指定が無く、必須ではないため。
+
+### ガイドへのフィードバック
+
+なし。0節でバージョン要件を先に満たしていたため、ビルド失敗は一度も
+起きなかった。3.1節の条件も事前に検出でき、組み込む前に対処できた。
