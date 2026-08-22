@@ -164,7 +164,7 @@ All tests passed!
 
 ## 3節: Androidへ組み込む（source module）
 
-PR: (作成中)
+PR: https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/3
 
 ### 組み込み方式（3.2節）
 
