@@ -233,3 +233,77 @@ $ ./gradlew projects
 
 なし。0節でバージョン要件を先に満たしていたため、ビルド失敗は一度も
 起きなかった。3.1節の条件も事前に検出でき、組み込む前に対処できた。
+
+---
+
+## 4節: iOSへ組み込む（Swift Package Manager）
+
+PR: https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/4
+
+### 方式（4.1節）
+
+**Swift Package Manager** を選択。CocoaPodsはメンテナンスモードで、
+レジストリが2026年12月2日に読み取り専用になるため、新規導入で選ぶ理由がない。
+
+前提の Flutter 3.44 以上は0節で確認済み（3.47.1）。
+
+### パッケージの生成（4.2-A節）
+
+```
+$ cd legacyapp_flutter
+$ flutter build swift-package --platform ios
+Building for Debug/Profile/Release...
+   ├─Copying Flutter.xcframework...
+   ├─Building App.xcframework and native assets...
+   ├─Generating swift packages...
+
+$ ls build/ios/SwiftPackages/
+FlutterNativeIntegration  Scripts
+
+$ ls build/ios/SwiftPackages/Scripts/
+FlutterAssembleInputs.xcfilelist  flutter_integration.sh
+flutter_lldb_helper.py           flutter_lldbinit
+```
+
+**条件の確認**: 出力先が `build/` 配下でバージョン管理対象外。
+チェックアウト直後とCIでは、Xcodeプロジェクトを開く前にこのコマンドを実行する
+必要がある。READMEに記載する。
+
+### XcodeGen への反映（4.2-A節）
+
+**条件の確認**: 本プロジェクトはXcodeGenで `project.yml` からプロジェクトを
+生成しているため、GUI操作は再生成のたびに失われる。ガイドの対応表に従って
+定義ファイル側に書いた。
+
+| 手順 | project.yml での記述 |
+|---|---|
+| 1. パッケージを追加 | `packages.FlutterNativeIntegration.path` |
+| 2. Frameworks に追加 | `dependencies: - package: FlutterNativeIntegration` |
+| 3. Build Settings | `settings.base` に `FLUTTER_SWIFT_PACKAGE_OUTPUT` ほか |
+| 4. Scheme の Pre-action | `schemes.LegacyApp.build.preActions` |
+| 5. Run Script + 入力リスト | `postCompileScripts`（`basedOnDependencyAnalysis: false`） |
+
+**5手順すべてを表現できた。**
+
+### 確認（4.5節）
+
+```
+$ xcodegen generate
+Created project at .../LegacyApp.xcodeproj
+
+$ xcodebuild -project LegacyApp.xcodeproj -scheme LegacyApp \
+    -sdk iphonesimulator -configuration Debug \
+    -destination "generic/platform=iOS Simulator" build
+** BUILD SUCCEEDED **
+```
+
+SPM方式では `.xcworkspace` は生成されないため、`-project` でビルドする
+（CocoaPods方式との違い）。
+
+### ローカルネットワーク権限（4.4節）
+
+7節（デバッグ）で `flutter attach` を試す段階で対応する。
+
+### ガイドへのフィードバック
+
+なし。XcodeGen対応表はそのまま適用でき、修正は不要だった。

@@ -4,6 +4,13 @@ options:
   developmentLanguage: ja
   deploymentTarget:
     iOS: "16.0"
+# ガイド4.2-A 手順1: 生成されたSwiftパッケージを追加する。
+# 出力先は build/ 配下（バージョン管理対象外）のため、
+# チェックアウト直後は先に `flutter build swift-package --platform ios` が必要。
+packages:
+  FlutterNativeIntegration:
+    path: ../legacyapp_flutter/build/ios/SwiftPackages/FlutterNativeIntegration
+
 targets:
   LegacyApp:
     type: application
@@ -13,6 +20,8 @@ targets:
       - path: LegacyApp/Resources
     dependencies:
       - sdk: libsqlite3.tbd
+      # 手順2: Frameworks, Libraries, and Embedded Content に追加
+      - package: FlutterNativeIntegration
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.legacyapp
@@ -22,6 +31,17 @@ targets:
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
         ASSETCATALOG_COMPILER_APPICON_NAME: ""
+        # 手順3: Build Settings
+        FLUTTER_SWIFT_PACKAGE_OUTPUT: $(SRCROOT)/../legacyapp_flutter/build/ios/SwiftPackages
+        FLUTTER_APPLICATION_PATH: $(SRCROOT)/../legacyapp_flutter
+        ENABLE_USER_SCRIPT_SANDBOXING: NO
+    # 手順5: Build Phases の Run Script（依存解析に基づかせない）
+    postCompileScripts:
+      - name: "[Flutter] assemble"
+        script: /bin/sh "$FLUTTER_SWIFT_PACKAGE_OUTPUT/Scripts/flutter_integration.sh" assemble
+        basedOnDependencyAnalysis: false
+        inputFileLists:
+          - $(FLUTTER_SWIFT_PACKAGE_OUTPUT)/Scripts/FlutterAssembleInputs.xcfilelist
     info:
       path: Generated-Info.plist
       properties:
@@ -39,6 +59,11 @@ schemes:
     build:
       targets:
         LegacyApp: all
+      # 手順4: Scheme の Pre-action
+      preActions:
+        - name: "[Flutter] prebuild"
+          script: /bin/sh "$FLUTTER_SWIFT_PACKAGE_OUTPUT/Scripts/flutter_integration.sh" prebuild
+          settingsTarget: LegacyApp
     run:
       config: Debug
     archive:
