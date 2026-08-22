@@ -95,7 +95,7 @@ $ (legacy_ios) xcodegen generate && xcodebuild ... build
 
 ## 2節: Flutterモジュールを作る
 
-PR: (作成中)
+PR: https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/2
 
 ### 作成
 
