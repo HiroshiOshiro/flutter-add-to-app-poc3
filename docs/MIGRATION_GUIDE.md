@@ -39,7 +39,7 @@
 | Android: Gradle | 8.14 以上 | `./gradlew -version` | `Gradle 8.14` 以上 |
 | Android: Android Gradle Plugin | 8.11.1 以上 | ルートの `build.gradle` の `classpath 'com.android.tools.build:gradle:...'` | `8.11.1` 以上 |
 | Android: Gradleを動かすJDK | 17 以上 | `./gradlew -version` | `Launcher JVM` が `17` 以上 |
-| Android: AndroidX | 必須 | `gradle.properties` | `android.useAndroidX=true` |
+| Android: AndroidX | 必須 | `grep useAndroidX gradle.properties` | `android.useAndroidX=true` |
 | iOS: Xcode | 15.0 以上 | `xcodebuild -version` | `Xcode 15.0` 以上 |
 
 満たさない場合、Flutter Gradleプラグインが下限を明示したエラーを出す。
@@ -53,7 +53,65 @@
 `VERSION_1_8` のままでもビルドは通る。要件を満たす必要があるのは
 `./gradlew -version` が表示する `Launcher JVM`。
 
-### 0.3 ディレクトリ配置
+**AndroidX は AGP 8 でも自動的には有効にならない。** `android.useAndroidX` の
+既定値は `false` のままで、明示的な設定が必要。ただし AGP 8 は AndroidX 依存が
+あるのに無効な場合に必ずビルドを失敗させるため、**AGP 8 でビルドが通っていれば
+要件は満たされている**と判断できる。
+
+```
+> Configuration `:app:debugRuntimeClasspath` contains AndroidX dependencies,
+  but the `android.useAndroidX` property is not enabled, which may cause
+  runtime issues.
+```
+
+### 0.3 新規コードの言語
+
+Flutter統合のために新規に書くコードは、既存がJava / Objective-Cでも
+Kotlin / Swiftで書ける。混在させる場合、以下の設定が前提になる。
+
+**Android**
+
+同一Gradleモジュール内でJavaとKotlinは共存でき、相互に呼び出せる。
+
+**条件**: JavaとKotlinのJVMターゲットが一致していること。
+
+**確認**: 不一致だと `Inconsistent JVM-target compatibility detected` で
+ビルドが失敗する。
+
+```groovy
+android {
+    compileOptions { sourceCompatibility JavaVersion.VERSION_1_8 }
+    kotlinOptions { jvmTarget = '1.8' }
+}
+```
+
+**iOS**
+
+参照の向きによって必要な設定が異なる。
+
+| 参照の向き | 必要なもの |
+|---|---|
+| Objective-C → Swift | 自動生成される `<ProductModuleName>-Swift.h` をimportする |
+| Swift → Objective-C | Bridging Header を設定する |
+
+**条件**: Bridging Header は「Swift→ObjC」だけの設定ではない。無い場合、
+生成される `-Swift.h` に `internal` な `@objc` クラスが書き出されない。
+
+**確認**: Objective-C側が `use of undeclared identifier` になる。
+
+| 条件 | `internal` な `@objc` クラスが `-Swift.h` に出るか |
+|---|---|
+| Bridging Header なし | 出ない（`public` にすれば出る） |
+| Bridging Header あり | 出る |
+
+**その他の設定**
+
+- Swiftファイルを1つでも追加する場合、`SWIFT_VERSION` と
+  `ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES` を設定する
+- プロジェクト生成ツールを使っている場合、`SWIFT_INSTALL_OBJC_HEADER` と
+  `SWIFT_OBJC_INTERFACE_HEADER_NAME` が既定で設定されないことがある
+
+### 0.4 ディレクトリ配置
 
 Flutterモジュールはホストアプリと**兄弟ディレクトリ**に置く。以降のスニペットは
 この配置を前提としている。
@@ -69,20 +127,24 @@ MyiOSApp/
 
 ## 1. 全体の流れ
 
+節番号がそのまま作業の順序になっている。
+
 ```mermaid
 flowchart TB
-    A["0. 事前確認"] --> B["1. Flutterモジュールを作る"]
-    B --> C["2. ホストアプリのビルドに組み込む"]
-    C --> D["3. Flutter画面を表示する"]
-    D --> E["4. ネイティブとの通信を作る"]
-    E --> F["5. デバッグ環境を整える"]
+    A["0. 事前確認"] --> B["2. Flutterモジュールを作る"]
+    B --> C["3. Androidへ組み込む"]
+    B --> D["4. iOSへ組み込む"]
+    C --> E["5. Flutter画面を表示する"]
+    D --> E
+    E --> F["6. ネイティブとの通信"]
+    F --> G["7. デバッグ"]
 
-    C -.-> C1["Android: source module / AAR"]
-    C -.-> C2["iOS: SPM / CocoaPods / 手動"]
-    D -.-> D1["エンジンの持ち方を決める"]
+    C -.-> C1["source module / AAR"]
+    D -.-> D1["SPM / CocoaPods / 手動"]
+    E -.-> E1["エンジンの持ち方を決める"]
 ```
 
-各ステップの終わりでビルドと動作確認を行う。
+各ステップの終わりでビルドと動作確認を行う。片方のOSだけ先に進めてもよい。
 
 ---
 
@@ -680,72 +742,19 @@ Androidでは、DebugビルドのAPKが大きいため上書きインストー�
 
 ---
 
-## 8. 段階移行のための設計
-
-### 8.1 フィーチャーフラグ
-
-**条件**: Flutter化した画面に問題が見つかったとき、リリースを待たずネイティブ
-実装へ戻せること。画面が増えてから後付けするのは難しいため、1画面目の時点で
-入れる。
-
-**対処**: 「この画面へ行きたい」という要求を受けて、ネイティブ実装とFlutter
-実装のどちらを開くかを決める層を1つ作る。呼び出し側がフラグを直接参照する
-作りにすると、Flutter化のたびに分岐がアプリ中に散らばる。
-
-同じ画面の両実装を実行時に切り替えられるため、問題の切り分けにも使える。
-
-### 8.2 新規コードの言語
-
-Flutter統合のために新規に書くコードは、既存がJava / Objective-Cでも
-Kotlin / Swiftで書ける。
-
-**Android**
-
-- 同一Gradleモジュール内でJavaとKotlinは共存でき、相互に呼び出せる
-- **条件**: JavaとKotlinのJVMターゲットが一致していること。不一致だと
-  `Inconsistent JVM-target compatibility detected` で失敗する
-
-```groovy
-android {
-    compileOptions { sourceCompatibility JavaVersion.VERSION_1_8 }
-    kotlinOptions { jvmTarget = '1.8' }
-}
-```
-
-**iOS**
-
-- Objective-CからSwiftを参照するには、自動生成される
-  `<ProductModuleName>-Swift.h` をimportする
-- SwiftからObjective-Cを参照するにはBridging Headerを設定する
-- **条件**: Bridging Header は「Swift→ObjC」だけの設定ではない。無い場合、
-  生成される `-Swift.h` に `internal` な `@objc` クラスが書き出されず、
-  Objective-C側が `use of undeclared identifier` になる
-
-| 条件 | `internal` な `@objc` クラスが `-Swift.h` に出るか |
-|---|---|
-| Bridging Header なし | 出ない（`public` にすれば出る） |
-| Bridging Header あり | 出る |
-
-- Swiftファイルを1つでも追加する場合、`SWIFT_VERSION` と
-  `ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES` を設定する
-- プロジェクト生成ツールを使っている場合、`SWIFT_INSTALL_OBJC_HEADER` と
-  `SWIFT_OBJC_INTERFACE_HEADER_NAME` が既定で設定されないことがある
-
----
-
-## 9. 症状と対処の一覧
+## 8. 症状と対処の一覧
 
 | 症状 | 原因 | 対処 |
 |---|---|---|
 | Gradle / AGP のバージョンでビルド失敗 | Flutter SDKが要求する下限を下回っている | 0.2節 |
 | `Build was configured to prefer settings repositories ...` | `repositoriesMode` が `FAIL_ON_PROJECT_REPOS` | 3.1節 |
-| `Inconsistent JVM-target compatibility detected` | JavaとKotlinのJVMターゲット不一致 | 8.2節 |
+| `Inconsistent JVM-target compatibility detected` | JavaとKotlinのJVMターゲット不一致 | 0.3節 |
 | `AAPT: error: resource style/LaunchTheme not found` | 公式スニペットのテーマが存在しない | 5.2節 |
 | `pod install` が `Missing flutter_post_install` で失敗 | Podfileのフック未記載 | 4.2-B節 |
 | iOSでFlutter依存が見つからない | `.xcodeproj` を直接開いている | 4.2-B節 |
 | プロジェクト再生成後にビルドフェーズが消える | 生成 → `pod install` の順序 | 4.3節 |
 | `cannot find 'FlutterEngineGroup' in scope`（SPM） | `import Flutter` していない | 4.2-A節 |
-| ObjCから `use of undeclared identifier <Swiftのクラス>` | Bridging Header が無い | 8.2節 |
+| ObjCから `use of undeclared identifier <Swiftのクラス>` | Bridging Header が無い | 0.3節 |
 | `Setting a message handler before the FlutterEngine has been run` | プラグイン登録がエンジン実行より前 | 5.3節 |
 | 戻る操作でネイティブに戻らない／AppBarに余分な戻る矢印 | `initialRoute` が分割されている | 5.4節 |
 | 画面を増やすほどメモリが増える | `FlutterEngineGroup` を使っていない | 5.1節 |
