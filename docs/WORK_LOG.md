@@ -23,7 +23,7 @@
 
 ## 0節: 事前確認
 
-PR: (作成中)
+PR: https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/1
 
 ### 設計上の制約の確認（0.1節）
 
