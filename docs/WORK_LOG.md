@@ -307,3 +307,95 @@ SPM方式では `.xcworkspace` は生成されないため、`-project` でビ�
 ### ガイドへのフィードバック
 
 なし。XcodeGen対応表はそのまま適用でき、修正は不要だった。
+
+---
+
+## 5節: Flutter画面を表示する
+
+PR: (作成中)
+
+ガイド0.5節の方針により、この節で作るのは**プレースホルダ**。ルート名を表示
+するだけで、UIの作り込みは7節の後に行う。
+
+### エンジンの持ち方（5.1節）
+
+**FlutterEngineGroup** を選択。全画面のFlutter化を前提とするため、画面数が
+増えても成立する方式が必要。
+
+### Dart側
+
+```
+lib/
+  main.dart                             唯一のエントリポイント
+  routing/routes.dart                   ルート名の定義
+  routing/router.dart                   登録表とルート解決
+  ui/placeholder/placeholder_screen.dart  プレースホルダ
+```
+
+表示する画面は `PlatformDispatcher.instance.defaultRouteName` で受け取る。
+画面をFlutter化するときに触るのは `AppRoutes` と登録表の2箇所だけ。
+
+**初期スタックの固定（5.4節）** は条件に該当するため、最初から
+`onGenerateInitialRoutes` を入れた。入れないと `/confirm` が `['/', '/confirm']`
+の2画面になり、戻る操作でネイティブに抜けられない。
+
+**画面はWidgetクラスとして切り出した（7.2節）。** インラインのクロージャで
+組むとホットリロードが効かないため。
+
+### Android（5.2節）
+
+```java
+FlutterEngineGroup group = new FlutterEngineGroup(appContext);
+FlutterEngine engine = group.createAndRunEngine(
+        appContext, DartExecutor.DartEntrypoint.createDefault(), route);
+FlutterEngineCache.getInstance().put(engineId, engine);
+return FlutterActivity.withCachedEngine(engineId).build(context);
+```
+
+**テーマの条件（5.2節）**: `@style/LaunchTheme` は既存アプリに存在しないため、
+ホストアプリ既存の `@style/AppTheme` を指定した。ガイドに条件として書いてあった
+ため、`AAPT: error: resource style/LaunchTheme not found` は発生しなかった。
+
+`MemoFragment` は `new Intent(context, ConfirmActivity.class)` をやめ、
+`FlutterHost.intentFor(context, "/confirm")` を呼ぶだけになった。
+
+### iOS（5.3節）
+
+```swift
+let engine = engineGroup.makeEngine(
+    withEntrypoint: nil, libraryURI: nil, initialRoute: route)
+GeneratedPluginRegistrant.register(with: engine)
+return FlutterViewController(engine: engine, nibName: nil, bundle: nil)
+```
+
+**Objective-C相互運用（0.3節）**: Bridging Header と
+`SWIFT_INSTALL_OBJC_HEADER` / `SWIFT_OBJC_INTERFACE_HEADER_NAME` を
+**先に設定した**。ガイドに条件として書いてあったため、
+`use of undeclared identifier FlutterHost` は発生しなかった。
+
+`import Flutter` と `import FlutterPluginRegistrant` の2つが必要
+（`import FlutterNativeIntegration` では `FlutterEngineGroup` が見つからない）。
+
+### 確認
+
+| OS | Flutter画面 | 戻る操作 |
+|---|---|---|
+| Android | `route: /confirm` を表示 | `MainActivity` に復帰 |
+| iOS | `route: /confirm` を表示 | ナビゲーションバーの戻るで復帰 |
+
+AppBarに余分な戻る矢印は出ていない（初期スタックが1画面である証拠）。
+
+### 途中で起きたこと
+
+`find ... -name "LegacyApp.app" | head -1` で古いDerivedDataのビルドを
+インストールしようとして `Invalid parameter not satisfying: installURL` に
+なった。同名アプリのDerivedDataが複数あるため、更新時刻でソートして特定した。
+
+```
+$ ls -dlt ~/Library/Developer/Xcode/DerivedData/LegacyApp-*/Build/Products/Debug-iphonesimulator/LegacyApp.app
+```
+
+### ガイドへのフィードバック
+
+なし。5.2節のテーマ、5.4節の初期ルート、0.3節のBridging Header はいずれも
+条件として明記されていたため、**エラーを踏む前に対処できた**。
