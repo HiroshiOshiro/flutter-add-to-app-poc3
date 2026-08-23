@@ -24,6 +24,6 @@ import UIKit
             initialRoute: route
         )
         GeneratedPluginRegistrant.register(with: engine)
-        return FlutterViewController(engine: engine, nibName: nil, bundle: nil)
+        return FlutterScreenViewController(engine: engine)
     }
 }

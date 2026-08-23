@@ -666,22 +666,65 @@ startActivity(FlutterActivity.withNewEngine().initialRoute("/my_route").build(th
 startActivity(FlutterActivity.withCachedEngine("my_engine_id").build(this))
 ```
 
-`FlutterEngineGroup` を使う場合は、グループからエンジンを生成し、
-`FlutterEngineCache` に入れて `withCachedEngine` で起動する。
+**`FlutterEngineGroup` を使う場合は `NewEngineInGroupIntentBuilder` を使う。**
 
 ```kotlin
-val group = FlutterEngineGroup(context)
-val engine = group.createAndRunEngine(
-    context,
-    DartExecutor.DartEntrypoint.createDefault(),
-    "/my_route",          // 初期ルート
+val cache = FlutterEngineGroupCache.getInstance()
+if (cache.get(ENGINE_GROUP_ID) == null) {
+    cache.put(ENGINE_GROUP_ID, FlutterEngineGroup(context.applicationContext))
+}
+startActivity(
+    FlutterActivity.NewEngineInGroupIntentBuilder(
+        MyFlutterActivity::class.java,   // configureFlutterEngine を持つサブクラス
+        ENGINE_GROUP_ID,
+    )
+        .initialRoute("/my_route")
+        .backgroundMode(FlutterActivityLaunchConfigs.BackgroundMode.opaque)
+        .build(context)
 )
+```
+
+**条件**: プラットフォームチャネルを使う場合、`createAndRunEngine` で自分で
+エンジンを作る方式は使えない。
+
+```kotlin
+// この形は避ける
+val engine = group.createAndRunEngine(context, entrypoint, "/my_route")
 FlutterEngineCache.getInstance().put(ENGINE_ID, engine)
 startActivity(FlutterActivity.withCachedEngine(ENGINE_ID).build(context))
 ```
 
-`FlutterActivity.NewEngineInGroupIntentBuilder` を使えばキャッシュを介さずに
-起動できる。
+`createAndRunEngine` は**その場でDartを起動する**。Activityが生成されて
+チャネルを登録するのはその後になるため、Dart側が起動直後にチャネルを呼ぶと
+値が返らない。
+
+**確認**: Flutter側が次の例外を受け取る。
+
+```
+MissingPluginException(No implementation found for method readFormData
+  on channel com.example.myapp/legacy_store)
+```
+
+`NewEngineInGroupIntentBuilder` なら、FlutterActivityが
+**エンジン生成 → `configureFlutterEngine`（チャネル登録）→ Dart実行**の
+順序を保証する。
+
+### チャネルを登録する場所
+
+`FlutterActivity` を継承したサブクラスを1つ作り、`configureFlutterEngine` で
+登録する。画面ごとに作るのではなく、**Flutter画面全体で1つ**。
+
+```kotlin
+class MyFlutterActivity : FlutterActivity() {
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)   // プラグインの登録
+        NativeServices.attach(this, flutterEngine)    // 独自チャネルはその後
+    }
+}
+```
+
+ハンドラが画面遷移などでActivityを必要とするため、エンジン生成時ではなく
+ここで登録する。iOSも同様に `FlutterViewController` のサブクラスで登録する。
 
 **条件**: キャッシュエンジンに初期ルートを指定する場合、Dartのエントリポイントを
 実行する**前**に設定すること。
@@ -785,6 +828,23 @@ MaterialApp(
 - Flutterへ完全に移すデータ — 起動時に一度だけ旧データを読んで新形式へ書き換え、
   移行済みフラグを立てて二度と読まない
 
+### 6.3 ホストアプリ内部の状態にアクセスする
+
+**条件**: 渡したいデータがホストアプリの非公開なフィールドに入っている場合、
+Flutter統合のコードから参照できない。統合コードを別パッケージ／別ファイルに
+まとめると顕在化する。
+
+**確認**: Androidなら次のようなコンパイルエラーになる。
+
+```
+error: sFormData is not public in BaseActivity;
+       cannot be accessed from outside package
+```
+
+**対処**: 可視性を広げるか、アクセサを足す。既存コードに手を入れることになる
+ため、**移行が進めばこの変更は不要になる**（データの所有がFlutterへ移るため）
+とコメントを残しておくと、後で外し忘れない。
+
 ---
 
 ## 7. デバッグ
@@ -871,6 +931,7 @@ Androidでは、DebugビルドのAPKが大きいため上書きインストー�
 | `cannot find 'FlutterEngineGroup' in scope`（SPM） | `import Flutter` していない | 4.2-A節 |
 | ObjCから `use of undeclared identifier <Swiftのクラス>` | Bridging Header が無い | 0.3節 |
 | `Setting a message handler before the FlutterEngine has been run` | プラグイン登録がエンジン実行より前 | 5.3節 |
+| `MissingPluginException(No implementation found for method ...)` | `createAndRunEngine` でDartが先に走り、チャネル登録が間に合っていない | 5.2節 |
 | 戻る操作でネイティブに戻らない／AppBarに余分な戻る矢印 | `initialRoute` が分割されている | 5.4節 |
 | 画面を増やすほどメモリが増える | `FlutterEngineGroup` を使っていない | 5.1節 |
 | Flutter画面を閉じても処理が動き続ける | キャッシュエンジンを `destroy()` していない | 5.5節 |

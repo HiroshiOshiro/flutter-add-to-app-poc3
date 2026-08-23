@@ -14,16 +14,19 @@
 		249EFC3735BB1FD618F4D9E3 /* ConfirmViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BC58799B13AE5139571F7DB /* ConfirmViewController.m */; };
 		3348C475BB51B843F1070287 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8F80F83393C68709E87143A2 /* Assets.xcassets */; };
 		3B43E73240E57BC4A503FA4B /* MusicViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34E440BA2146EDDB8F57CE43 /* MusicViewController.m */; };
+		3C55DD5AA2FD25F1344292DC /* FlutterScreenViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10BEBB4A3D098C8856D1613A /* FlutterScreenViewController.swift */; };
 		3CB566626EF3E9D24751DEFA /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = A3E9D5301E589408797E65C5 /* libsqlite3.tbd */; };
 		3D3FF094F594DAFB52674EC4 /* FavoritesDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = CB52D3F228D7A62F936F2912 /* FavoritesDatabase.m */; };
 		3E789D5B26553A9A87D9F810 /* FavoritesStore.m in Sources */ = {isa = PBXBuildFile; fileRef = BE274618D2AB783AEBC78A57 /* FavoritesStore.m */; };
 		425F59F025702BDEEB667273 /* InputViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 56216691207C58856ED27C3E /* InputViewController.m */; };
 		513E617B58E5B5527B636A17 /* TrackTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 408FE583B6B2AA4BE5C98F22 /* TrackTableViewCell.m */; };
 		58025F7CE9BBDF26AEE847A8 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 86C2D4CB20A6DA86CAC2E039 /* Localizable.strings */; };
+		594FE13879C612C5FBE43B0F /* NativeRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EC878EF7B5C684D948D58C5 /* NativeRouter.swift */; };
 		59B784FDBD0B5514721D9EF9 /* FormData.m in Sources */ = {isa = PBXBuildFile; fileRef = 14285F0C11DCB60D47700C81 /* FormData.m */; };
 		5CF3D60B82590575CE306265 /* TrackDetailViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 837DC4536FC10DEDA1459852 /* TrackDetailViewController.m */; };
 		98C581105D58D2CEF6BE57C8 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = C0C6D33A39EEA86789ACAEBE /* SceneDelegate.m */; };
 		AB5B7EA704BBE74754468F25 /* ArtworkLoader.m in Sources */ = {isa = PBXBuildFile; fileRef = B2C5832CEB3BB8509EA87419 /* ArtworkLoader.m */; };
+		DB4F5042976E3091E77E28E4 /* NativeServices.swift in Sources */ = {isa = PBXBuildFile; fileRef = FC012CFE9773892EC1D434F1 /* NativeServices.swift */; };
 		DB675B883D9FD91CA1F162BA /* ItunesTrack.m in Sources */ = {isa = PBXBuildFile; fileRef = C9D7C187CFD933BFA4DF71E0 /* ItunesTrack.m */; };
 		F4340F1CDBD0255BE1A6A3A5 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 47DACC6ADE13256ED65D8FD4 /* main.m */; };
 		F8DEDB260E612456ECB4F4BD /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = EF1A96CEE9263FEA74C3FC1C /* AppDelegate.m */; };
@@ -31,9 +34,11 @@
 
 /* Begin PBXFileReference section */
 		0B2FD3FDC79166761A2FAAB2 /* LegacyApp-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "LegacyApp-Bridging-Header.h"; sourceTree = "<group>"; };
+		10BEBB4A3D098C8856D1613A /* FlutterScreenViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlutterScreenViewController.swift; sourceTree = "<group>"; };
 		14285F0C11DCB60D47700C81 /* FormData.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FormData.m; sourceTree = "<group>"; };
 		19D36072572F81D464BD2E52 /* InputViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InputViewController.h; sourceTree = "<group>"; };
 		1C170EAAA05C265529D4DCEC /* ConfirmViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConfirmViewController.h; sourceTree = "<group>"; };
+		2EC878EF7B5C684D948D58C5 /* NativeRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeRouter.swift; sourceTree = "<group>"; };
 		3306B788FB338D283C233E55 /* FlutterHost.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlutterHost.swift; sourceTree = "<group>"; };
 		34E440BA2146EDDB8F57CE43 /* MusicViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MusicViewController.m; sourceTree = "<group>"; };
 		3CD02FF016638479FABF72A4 /* BaseViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BaseViewController.m; sourceTree = "<group>"; };
@@ -67,6 +72,7 @@
 		EF1A96CEE9263FEA74C3FC1C /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		F173B41FDF18376D8B24F0C3 /* ItunesTrack.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ItunesTrack.h; sourceTree = "<group>"; };
 		F746365D6D51B232F67CE029 /* TrackDetailViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TrackDetailViewController.h; sourceTree = "<group>"; };
+		FC012CFE9773892EC1D434F1 /* NativeServices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeServices.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -100,6 +106,7 @@
 				6E0E2E42163B199F88424D9D /* FavoritesStore.h */,
 				BE274618D2AB783AEBC78A57 /* FavoritesStore.m */,
 				3306B788FB338D283C233E55 /* FlutterHost.swift */,
+				10BEBB4A3D098C8856D1613A /* FlutterScreenViewController.swift */,
 				83D512E47E347C6E8601F4B4 /* FormData.h */,
 				14285F0C11DCB60D47700C81 /* FormData.m */,
 				19D36072572F81D464BD2E52 /* InputViewController.h */,
@@ -110,6 +117,8 @@
 				47DACC6ADE13256ED65D8FD4 /* main.m */,
 				E7A2FEBFBEEB2A64BD26C82D /* MusicViewController.h */,
 				34E440BA2146EDDB8F57CE43 /* MusicViewController.m */,
+				2EC878EF7B5C684D948D58C5 /* NativeRouter.swift */,
+				FC012CFE9773892EC1D434F1 /* NativeServices.swift */,
 				6ABF887357E8D8191D6E0724 /* SceneDelegate.h */,
 				C0C6D33A39EEA86789ACAEBE /* SceneDelegate.m */,
 				F746365D6D51B232F67CE029 /* TrackDetailViewController.h */,
@@ -272,10 +281,13 @@
 				3D3FF094F594DAFB52674EC4 /* FavoritesDatabase.m in Sources */,
 				3E789D5B26553A9A87D9F810 /* FavoritesStore.m in Sources */,
 				1074F902A70CF63F7147099E /* FlutterHost.swift in Sources */,
+				3C55DD5AA2FD25F1344292DC /* FlutterScreenViewController.swift in Sources */,
 				59B784FDBD0B5514721D9EF9 /* FormData.m in Sources */,
 				425F59F025702BDEEB667273 /* InputViewController.m in Sources */,
 				DB675B883D9FD91CA1F162BA /* ItunesTrack.m in Sources */,
 				3B43E73240E57BC4A503FA4B /* MusicViewController.m in Sources */,
+				594FE13879C612C5FBE43B0F /* NativeRouter.swift in Sources */,
+				DB4F5042976E3091E77E28E4 /* NativeServices.swift in Sources */,
 				98C581105D58D2CEF6BE57C8 /* SceneDelegate.m in Sources */,
 				5CF3D60B82590575CE306265 /* TrackDetailViewController.m in Sources */,
 				513E617B58E5B5527B636A17 /* TrackTableViewCell.m in Sources */,

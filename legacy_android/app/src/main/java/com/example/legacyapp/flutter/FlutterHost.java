@@ -4,10 +4,9 @@ import android.content.Context;
 import android.content.Intent;
 
 import io.flutter.embedding.android.FlutterActivity;
-import io.flutter.embedding.engine.FlutterEngine;
-import io.flutter.embedding.engine.FlutterEngineCache;
+import io.flutter.embedding.android.FlutterActivityLaunchConfigs;
 import io.flutter.embedding.engine.FlutterEngineGroup;
-import io.flutter.embedding.engine.dart.DartExecutor;
+import io.flutter.embedding.engine.FlutterEngineGroupCache;
 
 /**
  * Flutterのエンジンを一元管理する唯一の場所。
@@ -16,29 +15,28 @@ import io.flutter.embedding.engine.dart.DartExecutor;
  * FlutterEngineGroupから生成したエンジンはスナップショット・GPUコンテキスト・
  * フォントを共有するため、2つ目以降の増分はごくわずかで済む。
  *
- * <p>ネイティブ側が知っているのはルート名だけで、その名前に対応する画面が
- * Flutter側のどのWidgetかは知らない。画面をFlutter化するときにネイティブ側へ
- * コードを足さずに済むのはこのため。
+ * <p><b>NewEngineInGroupIntentBuilder を使う理由</b>: グループから
+ * {@code createAndRunEngine} でエンジンを作る方式だと、その時点でDartが
+ * 走り出す。Activityがチャネルを登録するのはその後になるため、Dart側が
+ * 起動直後にチャネルを呼ぶと MissingPluginException になる。この方式なら
+ * FlutterActivityがエンジン生成・チャネル登録・Dart実行の順序を保証する。
  */
 public final class FlutterHost {
 
-    private static FlutterEngineGroup engineGroup;
+    private static final String ENGINE_GROUP_ID = "legacyapp_engine_group";
 
     private FlutterHost() {
     }
 
     public static Intent intentFor(Context context, String route) {
-        Context appContext = context.getApplicationContext();
-        if (engineGroup == null) {
-            engineGroup = new FlutterEngineGroup(appContext);
+        FlutterEngineGroupCache cache = FlutterEngineGroupCache.getInstance();
+        if (cache.get(ENGINE_GROUP_ID) == null) {
+            cache.put(ENGINE_GROUP_ID, new FlutterEngineGroup(context.getApplicationContext()));
         }
-        FlutterEngine engine = engineGroup.createAndRunEngine(
-                appContext,
-                DartExecutor.DartEntrypoint.createDefault(),
-                route);
-
-        String engineId = "flutter_engine_" + route;
-        FlutterEngineCache.getInstance().put(engineId, engine);
-        return FlutterActivity.withCachedEngine(engineId).build(context);
+        return new FlutterActivity.NewEngineInGroupIntentBuilder(
+                FlutterScreenActivity.class, ENGINE_GROUP_ID)
+                .initialRoute(route)
+                .backgroundMode(FlutterActivityLaunchConfigs.BackgroundMode.opaque)
+                .build(context);
     }
 }
