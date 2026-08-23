@@ -42,13 +42,26 @@
 
 ### 共通の準備
 
-Flutterモジュールの依存を取得する。`legacyapp_flutter/.android/` と `.ios/` が
-生成され、ホストアプリはそこを参照する。
+**Flutter SDKは 3.47.1 に固定している。** バージョンは
+`legacyapp_flutter/.fvmrc` が唯一の情報源で、CIもここを読む。
+
+```bash
+brew install fvm
+cd legacyapp_flutter && fvm install
+```
+
+以降 `flutter` ではなく **`fvm flutter`** を使う。素の `flutter` で
+`pub get` すると、生成物に個人のSDKパスが書き戻る（ビルドは通るため気づかない）。
+
+**`source module` 方式のため、Androidホストアプリをビルドする人にもSDKが要る。**
+Dartを書かない場合も上記の準備が必要。
 
 ```bash
 cd legacyapp_flutter
-flutter pub get
+fvm flutter pub get
 ```
+
+`legacyapp_flutter/.android/` と `.ios/` が生成され、ホストアプリはそこを参照する。
 
 ### Android Studio
 
@@ -79,7 +92,7 @@ cd legacy_android
 
 ```bash
 cd legacyapp_flutter
-flutter build swift-package --platform ios
+fvm flutter build swift-package --platform ios
 ```
 
 そのうえで `LegacyApp.xcodeproj` を開く。**SPM方式では `.xcworkspace` は
@@ -108,12 +121,12 @@ xcodebuild -project LegacyApp.xcodeproj -scheme LegacyApp \
 
 ```bash
 cd legacyapp_flutter
-flutter run -t lib/main_dev.dart -d <device-id>
+fvm flutter run -t lib/main_dev.dart -d <device-id>
 ```
 
 ```bash
 cd legacyapp_flutter
-flutter analyze && flutter test
+fvm flutter analyze && fvm flutter test
 ```
 
 ## CI
@@ -136,9 +149,11 @@ YAMLアンカーで組んである。
 `ios:build` はXcodeが要るためmacOSのRunnerでしか動かない。Runnerが無い環境で
 パイプラインが滞留しないよう手動実行にしてある。
 
-Flutter SDKは公式アーカイブから入れている。ベースイメージが持つFlutterは
-配布されている最新が3.44.0で、`pubspec.yaml` の `sdk: ^3.13.1` を満たさないため
-`pub get` が失敗する。
+**バージョンは `legacyapp_flutter/.fvmrc` から読む。**開発者側（FVM）とCIで
+情報源を1つにするため。`.fvmrc` を上げればCIも追従する。
+
+SDKは公式アーカイブから入れている。ベースイメージが持つFlutterは配布されている
+最新が3.44.0で、`pubspec.yaml` の制約を満たさないため `pub get` が失敗する。
 
 組み込み方式に由来する準備がそれぞれのジョブに入っている。
 

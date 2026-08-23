@@ -19,6 +19,9 @@ version: 1.0.0+1
 
 environment:
   sdk: ^3.13.1
+  # FVMを使わずに古いSDKでpub getした場合をここで止める。
+  # 正確なバージョンの固定は .fvmrc が担う。
+  flutter: ">=3.47.1"
 
 dependencies:
   flutter:
