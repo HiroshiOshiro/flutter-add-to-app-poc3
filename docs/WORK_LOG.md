@@ -305,7 +305,7 @@ SPM方式では `.xcworkspace` は生成されないため、`-project` でビ�
 当初「7節で対応する」として先送りしたが、**これは誤った判断だった**。
 ガイドは4.4節、つまりiOS組み込みの一部として置いている。先送りした結果、
 Androidはデバッグできるのに iOS だけできない状態を作ってしまった。
-後から別PRで対応した（下記「補足: 4.4節の実施」）。
+後から別PRで対応した（[PR #8](https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/8)、下記「補足: 4.4節の実施」）。
 
 ### ガイドへのフィードバック
 
@@ -476,7 +476,7 @@ SPM方式では `pod install` の工程が無いため、順序の記述だけ�
 
 ## 補足: 4.4節の実施（先送りの訂正）
 
-PR: (作成中)
+PR: https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/8
 
 4節の作業時に「7節で対応する」として先送りしていたローカルネットワーク権限を
 実施した。
