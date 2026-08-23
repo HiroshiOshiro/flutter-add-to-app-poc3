@@ -30,6 +30,7 @@
 
 - `legacy_android/` — 移行前のAndroidアプリ（Java）
 - `legacy_ios/` — 移行前のiOSアプリ（Objective-C）
+- `docs/SUMMARY.md` — 作業概要
 - `docs/MIGRATION_GUIDE.md` — add-to-app の導入手順
 - `legacyapp_flutter/` — Flutterモジュール
 - `docs/DEBUGGING.md` — Flutter側のデバッグ手順
