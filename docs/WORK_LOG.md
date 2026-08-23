@@ -302,7 +302,10 @@ SPM方式では `.xcworkspace` は生成されないため、`-project` でビ�
 
 ### ローカルネットワーク権限（4.4節）
 
-7節（デバッグ）で `flutter attach` を試す段階で対応する。
+当初「7節で対応する」として先送りしたが、**これは誤った判断だった**。
+ガイドは4.4節、つまりiOS組み込みの一部として置いている。先送りした結果、
+Androidはデバッグできるのに iOS だけできない状態を作ってしまった。
+後から別PRで対応した（[PR #8](https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/8)、下記「補足: 4.4節の実施」）。
 
 ### ガイドへのフィードバック
 
@@ -468,3 +471,88 @@ Xcodeを終了し、Xcode側の状態とDerivedDataを消してから開き直�
 SPM方式では `pod install` の工程が無いため、順序の記述だけでは今回の症状を
 防げない。4.3節に条件2として追記し、症状一覧にも追加した。切り分けに使える
 `-resolvePackageDependencies` も載せた。
+
+---
+
+## 補足: 4.4節の実施（先送りの訂正）
+
+PR: https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/8
+
+4節の作業時に「7節で対応する」として先送りしていたローカルネットワーク権限を
+実施した。
+
+### 先送りが誤りだった理由
+
+- ガイドは4.4節、つまり**iOS組み込みの一部**として置いている
+- 先送りした結果、5節・6節を進める間 **iOS だけデバッグできない**状態になる
+- `project.yml` を触る作業なので、4節で他の設定と一緒に入れる方が
+  `xcodegen generate` のやり直しが減る
+
+「デバッグ関連だから7節」という表面的な分類で判断していた。
+
+### XcodeGen では構成別に分けられなかった
+
+ガイドは「Debug構成にだけ入れる。Release構成には `_dartVmService._tcp` を
+含めない」としている。XcodeGenで2通り試した。
+
+**試行1: `INFOPLIST_KEY_*` を構成別に指定** → 失敗。
+
+```yaml
+configs:
+  Debug:
+    INFOPLIST_KEY_NSBonjourServices: _dartVmService._tcp
+    INFOPLIST_KEY_NSLocalNetworkUsageDescription: ...
+```
+
+ビルドは通るが、**どちらのキーも生成されたInfo.plistに入らなかった**。
+`info: path: Generated-Info.plist` で明示的な `INFOPLIST_FILE` を使っている
+ため、`INFOPLIST_KEY_*` による注入が効かない。配列型のキーが扱えない問題
+以前に、文字列キーも反映されなかった。
+
+**試行2: `info.properties` に追加** → 成功。ただし**全構成に入る**。
+
+```
+$ plutil -extract NSBonjourServices xml1 -o - .../LegacyApp.app/Info.plist
+<array>
+	<string>_dartVmService._tcp</string>
+</array>
+```
+
+構成別に分けるには、XcodeGenによるInfo.plist生成をやめて構成ごとのplistを
+手で管理する必要がある。PoCの範囲では全構成に入れる方を選んだ。
+
+### iOSでの `flutter attach`
+
+権限を追加しても**自動探索は成功しなかった**。
+
+```
+$ flutter attach -d <udid>
+Waiting for a connection from Flutter on iPhone 16e...   （進まない）
+```
+
+ガイド7.1節の回避策で接続できた。
+
+```
+$ xcrun simctl spawn <udid> log show --last 3m \
+    --predicate 'processImagePath CONTAINS "LegacyApp"' --style compact \
+    | grep "Dart VM service"
+flutter: The Dart VM service is listening on http://127.0.0.1:64556/A-PAwEJH-H0=/
+
+$ flutter attach -d <udid> --debug-url "http://127.0.0.1:64556/A-PAwEJH-H0=/"
+r Hot reload. 🔥🔥🔥
+A Dart VM Service on iPhone 16e is available at: ...
+```
+
+Androidは自動探索で接続できる（追加設定なし）。
+
+### ガイドへのフィードバック
+
+**4.4節に不足あり。** 「Debug構成にだけ入れる」という指示は、Info.plistを
+手で管理している前提になっている。**プロジェクト生成ツールがInfo.plistを
+生成する構成では、構成別に分ける方法が自明でない。** 4.2-A節にXcodeGen対応表を
+足したのと同じ扱いで、この制約を書き添えるべき。
+
+### デバッグ手順を別資料に分離
+
+`DEBUGGING.md` を作成した。ガイドは導入手順、こちらは日常的に参照する
+デバッグ手順、という分担にした。
