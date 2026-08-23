@@ -61,6 +61,46 @@ grep -A2 "platforms" my_flutter_module/build/ios/SwiftPackages/FlutterNativeInte
 ホストアプリ側が下回っていると、パッケージ解決の時点で失敗する。引き上げられない
 場合は、対応する下限が低い古いFlutterを使うか、対応OSを切る判断が要る。
 
+#### Flutter SDKのバージョンを揃える
+
+**バージョン管理下には、SDKのバージョンを固定するものが既定では何も無い。**
+`.metadata` はツール用の記録で、固定には使えない。
+
+**条件**: `source module` 方式では、ホストアプリをビルドする全員のマシンに
+Flutter SDKが必要になる。揃える対象はFlutterを書く人だけではない。
+
+**対処**: バージョンマネージャ（FVMなど）で固定し、設定ファイルをコミットする。
+
+```bash
+brew install fvm
+cd my_flutter_module && fvm use <version>   # .fvmrc ができる
+```
+
+`.fvmrc` をコミットし、SDKの実体（`.fvm/`）は除外する。以降は `fvm flutter` で
+実行する。あわせて `pubspec.yaml` に下限を宣言しておくと、FVMを使っていない人が
+古いSDKで `pub get` した時点で止まる。
+
+```yaml
+environment:
+  flutter: ">=<version>"
+```
+
+**確認**: ネイティブ側のビルドは**PATH上の `flutter` を見ていない。**
+`flutter pub get` と `flutter build swift-package` を**実行したSDK**が、生成物に
+絶対パスで焼き込まれる。
+
+| OS | 焼き込まれる先 | 生成するコマンド |
+|---|---|---|
+| Android | `.android/local.properties` の `flutter.sdk` | `flutter pub get` |
+| iOS（SPM） | `build/ios/SwiftPackages/` 一式 | `flutter build swift-package` |
+
+```bash
+grep flutter.sdk my_flutter_module/.android/local.properties
+```
+
+素の `flutter` でこれらを実行すると個人のSDKに書き戻るが、**ビルドは通るため
+気づかない。** SDKを切り替えたら必ず両方を実行し直す。
+
 満たさない場合、Flutter Gradleプラグインが下限を明示したエラーを出す。
 
 ```
