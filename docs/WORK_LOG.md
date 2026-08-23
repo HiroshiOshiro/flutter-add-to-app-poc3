@@ -657,3 +657,71 @@ iOSは入力時にIMEが介在して「たろ」になっているが、**ネイ
 | 5.2節 | **誤り**: EngineGroupのスニペットが `createAndRunEngine` で、チャネルを使うと `MissingPluginException` になる |
 | 5.2節 | **不足**: チャネルをどこで登録するか（サブクラスの `configureFlutterEngine`）が無かった |
 | 6.3節 | **不足**: ホストアプリの非公開フィールドにアクセスできない件 |
+
+---
+
+## 7節: デバッグ
+
+PR: (作成中)
+
+ローカルネットワーク権限（4.4節）は前倒しで実施済みのため、この節は
+**実際に `flutter attach` して確認する**だけになった。
+
+### Android
+
+自動探索で接続できた。追加設定は不要。
+
+```
+$ flutter attach -d emulator-5554
+r Hot reload. 🔥🔥🔥
+The Flutter DevTools debugger and profiler on sdk gphone64 arm64 is available at:
+  http://127.0.0.1:55405/Dg3qbiKYLR0=/devtools/?uri=...
+```
+
+### iOS（7.1節）
+
+**自動探索は成功しない。** ガイドの回避策どおり、VMサービスのURLを
+デバイスログから取得して渡した。
+
+```
+$ xcrun simctl spawn <udid> log show --last 2m \
+    --predicate 'processImagePath CONTAINS "LegacyApp"' --style compact \
+    | grep -o "http://127.0.0.1:[0-9]*/[A-Za-z0-9_=-]*/"
+http://127.0.0.1:55501/EGkpZbNqP1w=/
+
+$ flutter attach -d <udid> --debug-url "http://127.0.0.1:55501/EGkpZbNqP1w=/"
+r Hot reload. 🔥🔥🔥
+```
+
+URLはアプリを起動するたびに変わる。
+
+### ホットリロードの反映（7.2節）
+
+**画面に反映されることを確認した。**
+
+```
+$ kill -SIGUSR1 $(cat /tmp/flutter.pid)
+Performing hot reload...
+Reloaded 1 of 760 libraries in 288ms
+```
+
+画面の表示が `route: /confirm` から `ROUTE(hot reloaded): /confirm` に変わった。
+
+5節の時点で **画面をWidgetクラスとして切り出していた**（ガイド7.2節の条件）
+ため、インラインのクロージャで組んだ場合の「成功と出るのに反映されない」現象は
+起きなかった。条件を先に満たしておいた効果が確認できた。
+
+### 確認結果
+
+| 項目 | Android | iOS |
+|---|---|---|
+| `flutter attach`（自動探索） | 成功 | **失敗**（`--debug-url` が必要） |
+| DevTools | 利用可 | 利用可 |
+| ホットリロードの画面反映 | 成功 | 接続まで確認 |
+| `--pid-file` + シグナル | 成功 | 成功 |
+
+### ガイドへのフィードバック
+
+なし。7.1節の回避策、7.2節の条件とも記載どおりだった。
+
+手順は `DEBUGGING.md` に分離済み。
