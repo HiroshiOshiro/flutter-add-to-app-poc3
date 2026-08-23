@@ -556,3 +556,104 @@ Androidは自動探索で接続できる（追加設定なし）。
 
 `DEBUGGING.md` を作成した。ガイドは導入手順、こちらは日常的に参照する
 デバッグ手順、という分担にした。
+
+---
+
+## 6節: ネイティブとの通信
+
+PR: (作成中)
+
+### チャネルの粒度（6.1節）
+
+確認画面が必要とするものは2つ。ガイドに従い**機能単位**で2本に切った。
+
+| チャネル | 役割 | 移行完了時 |
+|---|---|---|
+| `…/legacy_store` | ネイティブが保持する入力内容を読む | 消える |
+| `…/navigation` | 完了画面（ネイティブ）へ抜ける | 消える |
+
+送信（POST）は方針どおり**Flutter側で実装する**ため、チャネルには含めない。
+
+### まとめて返す（0.5節）
+
+項目ごとにメソッドを分けず `readFormData` 1つで `{name, email, message}` を
+返す形にした。項目が増えるたびにネイティブ側の変更が必要になるのを避けるため。
+
+### つまずいた点1: `MissingPluginException`
+
+プレースホルダに取得値を表示したところ、値ではなく例外が出た。
+
+```
+legacy_store error: MissingPluginException(No implementation found for
+method readFormData on channel com.example.legacyapp/legacy_store)
+```
+
+**原因はガイドのスニペットだった。** ガイドが主として載せていた形は
+
+```kotlin
+val engine = group.createAndRunEngine(context, entrypoint, "/my_route")
+FlutterEngineCache.getInstance().put(ENGINE_ID, engine)
+startActivity(FlutterActivity.withCachedEngine(ENGINE_ID).build(context))
+```
+
+`createAndRunEngine` は**その場でDartを起動する**。Activityが生成されて
+チャネルを登録するのはその後なので、Dart側が `initState` でチャネルを呼ぶと
+間に合わない。
+
+ガイドが補足として1行だけ触れていた `NewEngineInGroupIntentBuilder` に変えて
+解消した。この方式は FlutterActivity が
+**エンジン生成 → `configureFlutterEngine` → Dart実行**の順序を保証する。
+
+**判定: ガイドが誤り。** チャネルを使う構成では主として載せていた形が
+使えない。スニペットを差し替え、理由と症状を明記した。
+
+### つまずいた点2: ホストアプリ内部の状態にアクセスできない
+
+統合コードを `com.example.legacyapp.flutter` パッケージにまとめたところ、
+入力内容を保持している `BaseActivity.sFormData` がパッケージプライベートで
+参照できなかった。
+
+```
+error: sFormData is not public in BaseActivity;
+       cannot be accessed from outside package
+```
+
+`public` に変更し、「移行が進めば不要になる」旨のコメントを残した。
+
+**判定: ガイドに不足あり。** 既存アプリの内部状態を渡す場合に必ず起きる話
+なので、6.3節として追記した。
+
+### チャネル登録の場所
+
+ハンドラが画面遷移でActivity／ViewControllerを必要とするため、エンジン生成時
+ではなくサブクラスで登録する形にした。画面ごとではなく**Flutter画面全体で1つ**。
+
+| OS | クラス |
+|---|---|
+| Android | `FlutterScreenActivity extends FlutterActivity` の `configureFlutterEngine` |
+| iOS | `FlutterScreenViewController: FlutterViewController` の `init` |
+
+これもガイドに書かれていなかったため追記した。
+
+### 確認（6節の完了条件）
+
+ガイドの通り「チャネルを実装した」ではなく「**実際に値が渡ることを確認した**」
+を完了条件とした。プレースホルダに取得値をそのまま表示している。
+
+| OS | `legacy_store` | `navigation` |
+|---|---|---|
+| Android | `FormDataModel(name: Taro, email: taro@example.com, message: Hello)` | 完了画面（`CompleteActivity`）へ遷移 |
+| iOS | `FormDataModel(name: たろ, email: , message: )` | 完了画面（`CompleteViewController`）へ遷移 |
+
+iOSは入力時にIMEが介在して「たろ」になっているが、**ネイティブが保持している
+値がそのまま届いている**ことは確認できる。
+
+### ガイドへのフィードバック
+
+**誤り1件・不足2件**を修正した。
+
+| 箇所 | 内容 |
+|---|---|
+| 5.2節 | **誤り**: EngineGroupのスニペットが `createAndRunEngine` で、チャネルを使うと `MissingPluginException` になる |
+| 5.2節 | **不足**: チャネルをどこで登録するか（サブクラスの `configureFlutterEngine`）が無かった |
+| 6.3節 | **不足**: ホストアプリの非公開フィールドにアクセスできない件 |

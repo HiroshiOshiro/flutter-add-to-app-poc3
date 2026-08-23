@@ -8,5 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 // quietly depends on.
 public abstract class BaseActivity extends AppCompatActivity {
 
-    static final FormData sFormData = new FormData();
+    // Flutter統合のハンドラ（com.example.legacyapp.flutter）から参照するため
+    // public にしている。移行が進みこの状態の所有がFlutterへ移れば不要になる。
+    public static final FormData sFormData = new FormData();
 }
