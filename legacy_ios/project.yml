@@ -53,6 +53,12 @@ targets:
       properties:
         CFBundleDisplayName: LegacyApp
         CFBundleLocalizations: [ja, en]
+        # ガイド4.4節: flutter attach（ホットリロード・DevTools）に必要。
+        # ガイドはDebug構成にだけ入れるよう求めているが、XcodeGenが
+        # Info.plistを生成する構成では構成別に分けられない（作業ログ参照）。
+        NSBonjourServices:
+          - _dartVmService._tcp
+        NSLocalNetworkUsageDescription: Allows Flutter debugging and hot reload
         UILaunchScreen: {}
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false

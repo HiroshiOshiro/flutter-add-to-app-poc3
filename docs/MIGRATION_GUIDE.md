@@ -588,6 +588,12 @@ Release構成には `_dartVmService._tcp` を含めない。Build Settings の
 **Info.plist File** を `$(SRCROOT)/path/to/Info-$(CONFIGURATION).plist` に
 することで構成ごとに切り替えられる。
 
+> **プロジェクト生成ツールがInfo.plistを生成している場合、構成別に分けられない
+> ことがある。** 生成されるplistは1つで、`INFOPLIST_KEY_*` による構成別の注入も
+> 明示的な `INFOPLIST_FILE` を使っていると効かない。構成ごとに分けるには
+> plist生成をやめて手で管理することになる。全構成に入れる場合は、
+> Release成果物にデバッグ用サービスの宣言が残ることを承知した上で判断する。
+
 ### 4.5 確認
 
 ```bash

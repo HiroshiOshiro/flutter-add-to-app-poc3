@@ -32,6 +32,7 @@
 - `legacy_ios/` — 移行前のiOSアプリ（Objective-C）
 - `docs/MIGRATION_GUIDE.md` — add-to-app の導入手順
 - `legacyapp_flutter/` — Flutterモジュール
+- `docs/DEBUGGING.md` — Flutter側のデバッグ手順
 - `docs/WORK_LOG.md` — 作業ログ（各節の記録とPRリンク）
 
 ## ビルドする
