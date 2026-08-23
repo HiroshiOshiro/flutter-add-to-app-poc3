@@ -122,13 +122,21 @@ YAMLアンカーで組んである。
 
 | ジョブ | stage | Runner | 内容 |
 |---|---|---|---|
-| `flutter:analyze` | analyze | docker | `flutter analyze` |
-| `flutter:test` | test | docker | `flutter test` |
-| `android:build` | build | docker | `./gradlew assembleDebug` |
-| `ios:build` | build | macos | `xcodebuild`（手動実行） |
+| `flutter:analyze` | analyze | タグ指定なし | `flutter analyze` |
+| `flutter:test` | test | タグ指定なし | `flutter test` |
+| `android:build` | build | タグ指定なし | `./gradlew assembleDebug` |
+| `ios:build` | build | `macos` | `xcodebuild`（手動実行） |
+
+**タグを指定するとそのタグを持つRunnerしか拾わない。** gitlab.com の共有Runnerは
+`docker` のようなタグを持たないため、Linux側の3ジョブはタグを付けていない。
+付けると `This job is stuck because you don't have any active runners` で止まる。
 
 `ios:build` はXcodeが要るためmacOSのRunnerでしか動かない。Runnerが無い環境で
 パイプラインが滞留しないよう手動実行にしてある。
+
+Flutter SDKは公式アーカイブから入れている。ベースイメージが持つFlutterは
+配布されている最新が3.44.0で、`pubspec.yaml` の `sdk: ^3.13.1` を満たさないため
+`pub get` が失敗する。
 
 組み込み方式に由来する準備がそれぞれのジョブに入っている。
 
