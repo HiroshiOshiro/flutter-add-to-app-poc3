@@ -730,7 +730,7 @@ Reloaded 1 of 760 libraries in 288ms
 
 ## 8節: 確認画面の作り込み
 
-PR: (作成中)
+PR: https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/11
 
 ネイティブ側の作業は7節で完了しているため、この節で触ったのは基本的にDartのみ。
 例外が1件あり、それが下記の「つまずいた点3」。
