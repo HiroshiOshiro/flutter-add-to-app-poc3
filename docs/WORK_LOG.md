@@ -559,7 +559,7 @@ Androidは自動探索で接続できる（追加設定なし）。
 
 ---
 
-## 6節: ネイティブとの通信
+## 6節: ネイティブとのやりとり
 
 PR: https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/9
 
