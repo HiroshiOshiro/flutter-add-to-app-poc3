@@ -662,7 +662,7 @@ iOSは入力時にIMEが介在して「たろ」になっているが、**ネイ
 
 ## 7節: デバッグ
 
-PR: (作成中)
+PR: https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/10
 
 ローカルネットワーク権限（4.4節）は前倒しで実施済みのため、この節は
 **実際に `flutter attach` して確認する**だけになった。
