@@ -5,6 +5,10 @@ build/
 local.properties
 .DS_Store
 
+# CIのキャッシュ置き場。cache:paths がプロジェクト外を指定できないため、
+# pub / Gradle のキャッシュをここへ寄せている（.gitlab-ci.yml）。
+.cache/
+
 # iOS
 legacy_ios/build/
 *.xcuserstate

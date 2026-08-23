@@ -1,0 +1,156 @@
+# GitLab CI/CD
+#
+# **GitLab 11.3.4（2018年9月）で動作すること**を条件にしている。
+# そのため以下は使っていない。使うとパイプラインが作成されない。
+#
+#   rules:               12.3で追加。代わりに only / when を使う
+#   needs:               12.2で追加
+#   workflow:            12.5で追加
+#   include:             Coreで使えるのは11.4以降
+#   only: changes:       11.4で追加
+#   parallel:            11.5で追加
+#   retry: の詳細指定     11.5で追加（整数指定のみ可）
+#   extends:             11.3で追加されたばかりのため、YAMLアンカーを使う
+#   !reference           13.xで追加
+#
+# 実行に必要なRunner
+#   docker  Linuxのdocker executor（Flutter / Android）
+#   macos   Xcodeが入ったmacOSのshell executor（iOS）
+
+stages:
+  - analyze
+  - test
+  - build
+
+variables:
+  GIT_DEPTH: "10"
+  # cache:paths はプロジェクトディレクトリの外を指定できないため、
+  # pubとGradleのキャッシュ先をプロジェクト配下へ移す。
+  PUB_CACHE: "$CI_PROJECT_DIR/.cache/pub"
+  GRADLE_USER_HOME: "$CI_PROJECT_DIR/.cache/gradle"
+  # ジョブごとにコンテナが使い捨てられるため、デーモンは常駐させない。
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+
+# ---------------------------------------------------------------------------
+# 共通定義
+#
+# アンカーはマージキー（<<:）で取り込む。listのアンカーをlistの要素として
+# 展開する書き方は古いGitLabでは平坦化されないため使わない。
+# ---------------------------------------------------------------------------
+
+# Flutter SDKのバージョンはローカルと揃える（ガイド0.2節）。
+# 上げるときはここと docs/MIGRATION_GUIDE.md の0.2節を合わせて更新する。
+.flutter_docker: &flutter_docker
+  image: ghcr.io/cirruslabs/flutter:3.47.1
+  tags:
+    - docker
+
+.dart_cache: &dart_cache
+  key: "dart-$CI_COMMIT_REF_SLUG"
+  paths:
+    - .cache/pub
+
+.android_cache: &android_cache
+  key: "android-$CI_COMMIT_REF_SLUG"
+  paths:
+    - .cache/pub
+    - .cache/gradle/caches
+    - .cache/gradle/wrapper
+
+# ---------------------------------------------------------------------------
+# Flutterモジュール
+#
+# ネイティブへ組み込まずに検証できる（ガイド0.5節）。チャネル越しの依存は
+# fakeへ差し替わるため、実機もネットワークも要らない。
+# ---------------------------------------------------------------------------
+
+flutter:analyze:
+  <<: *flutter_docker
+  stage: analyze
+  cache: *dart_cache
+  before_script:
+    # Flutter SDKの所有者とジョブの実行ユーザーが異なると、gitが
+    # dubious ownership でSDKのバージョン判定に失敗する。
+    - git config --global --add safe.directory '*'
+    - flutter --version
+    # pub getでl10nのコードも生成される（pubspec.yaml の generate: true）。
+    # 生成物はコミット済みだが、ARBだけ更新された場合にここで差分が出る。
+    - cd legacyapp_flutter
+    - flutter pub get
+  script:
+    - flutter analyze
+
+flutter:test:
+  <<: *flutter_docker
+  stage: test
+  cache: *dart_cache
+  before_script:
+    - git config --global --add safe.directory '*'
+    - cd legacyapp_flutter
+    - flutter pub get
+  script:
+    - flutter test
+
+# ---------------------------------------------------------------------------
+# Android（source module 方式）
+# ---------------------------------------------------------------------------
+
+android:build:
+  <<: *flutter_docker
+  stage: build
+  cache: *android_cache
+  before_script:
+    - git config --global --add safe.directory '*'
+    - flutter --version
+    # local.properties は絶対パスを含むマシン固有の設定のため、
+    # リポジトリには含まれない。無いと SDK location not found で失敗する。
+    - echo "sdk.dir=${ANDROID_SDK_ROOT:-$ANDROID_HOME}" > legacy_android/local.properties
+    # settings.gradle が参照する .android/include_flutter.groovy を生成する。
+    # source module 方式ではこれが無いとGradleの構成解決に失敗する。
+    - cd legacyapp_flutter
+    - flutter pub get
+    - cd ..
+  script:
+    - cd legacy_android
+    - ./gradlew --no-daemon assembleDebug
+  # APKは artifacts にしない。Flutterを含むDebug APKは1GBを超えるため、
+  # 保存するとジョブの大半がアップロード時間になる。
+
+# ---------------------------------------------------------------------------
+# iOS（SPM 方式）
+#
+# Xcodeが必要なためmacOSのRunnerでしか動かない。Runnerが用意されていない環境で
+# パイプラインが滞留しないよう、手動実行にしてある。常時実行にする場合は
+# when / allow_failure を消す。
+#
+# Runnerに必要なもの: Xcode 15以上、xcodegen、Flutter SDK
+# ---------------------------------------------------------------------------
+
+ios:build:
+  stage: build
+  tags:
+    - macos
+  when: manual
+  allow_failure: true
+  before_script:
+    - flutter --version
+    - cd legacyapp_flutter
+    - flutter pub get
+    - cd ..
+  script:
+    # ガイド4.3節の順序。プロジェクト定義 → 生成物 → ビルド。
+    - cd legacy_ios
+    - xcodegen generate
+    - cd ../legacyapp_flutter
+    # 出力先 legacyapp_flutter/build/ はバージョン管理外のため毎回生成する。
+    # Androidの .android/ が pub get で作られるのとは異なり、専用のコマンドが要る。
+    - flutter build swift-package --platform ios
+    - cd ../legacy_ios
+    - xcodebuild
+        -project LegacyApp.xcodeproj
+        -scheme LegacyApp
+        -sdk iphonesimulator
+        -configuration Debug
+        -destination "generic/platform=iOS Simulator"
+        CODE_SIGNING_ALLOWED=NO
+        build
