@@ -725,3 +725,134 @@ Reloaded 1 of 760 libraries in 288ms
 なし。7.1節の回避策、7.2節の条件とも記載どおりだった。
 
 手順は `DEBUGGING.md` に分離済み。
+
+---
+
+## 8節: 確認画面の作り込み
+
+PR: (作成中)
+
+ネイティブ側の作業は7節で完了しているため、この節で触ったのは基本的にDartのみ。
+例外が1件あり、それが下記の「つまずいた点3」。
+
+### 構成
+
+[公式のapp architecture guide](https://docs.flutter.dev/app-architecture/guide)
+の層に沿って置いた。
+
+```
+lib/
+  ui/confirm/widgets/confirm_screen.dart          View
+  ui/confirm/view_models/confirm_view_model.dart  ViewModel
+  ui/core/themes/app_theme.dart                   共通
+  ui/core/l10n/arb/{app_en,app_ja}.arb            文言
+  data/repositories/confirm_repository.dart       Repository（本番 / fake）
+  data/services/api_client.dart                   HTTP
+  data/services/legacy_store_service.dart         チャネル（6節で作成）
+  domain/models/form_data.dart                    モデル
+```
+
+想定どおり、**取得はチャネル・送信はFlutterのHTTP**という方針の分かれ目は
+Repositoryに閉じた。ViewModelもViewもどちらがどちらか知らない。
+
+```dart
+Future<FormDataModel> load() => _legacyStore.readFormData();          // ネイティブ
+Future<bool> submit(FormDataModel d) => _apiClient.postJson(_uri, d.toMap()); // Flutter
+```
+
+画面遷移はViewModelに持たせず、`submit()` は成功可否だけを返してViewが遷移する。
+
+### つまずいた点1: 画像が出せない
+
+確認画面はネイティブの `res/drawable-nodpi/profile_banner.png` を表示していた。
+Flutterからネイティブのリソースは参照できないため、モジュールへコピーして
+`pubspec.yaml` に登録した。移行完了までは両方に同じ画像が存在する。
+
+**判定: ガイドに不足あり。** 8.1節として追記した。
+
+### つまずいた点2: Flutter画面だけ英語にならない
+
+エミュレータの言語が英語で、ネイティブ画面は `values-en/strings.xml` により
+英語表示になっていた。Flutter側は文言をDartに直書きしていたため、
+**Flutter画面だけ日本語**という状態になった。
+
+ホストアプリは Android / iOS とも ja / en の2言語に対応している。
+
+```
+legacy_android/app/src/main/res/values/strings.xml     日本語
+legacy_android/app/src/main/res/values-en/strings.xml  英語
+legacy_ios/LegacyApp/Resources/{ja,en}.lproj/Localizable.strings
+```
+
+文言をARBへ移し、`MaterialApp` に `localizationsDelegates` と
+`supportedLocales` を設定して解消した。設定しないと既定（英語のみ）が使われる。
+
+**判定: ガイドに不足あり。** 8.2節として追記した。
+
+### つまずいた点3: AndroidでActionBarが消える
+
+移行前の確認画面には `LegacyApp` のタイトルバーが出ていたが、Flutter画面には
+出なかった。iOSはナビゲーションバーがそのまま出るため、**Androidだけ**の差異。
+
+原因は `FlutterActivity` が `AppCompatActivity` ではないこと。AppCompat系の
+テーマは `android:windowActionBar=false` を指定していて、ActionBarは
+`AppCompatActivity` が自分で立てている。
+
+最初に `Theme.MaterialComponents.Light.DarkActionBar.Bridge` を試したが**出な
+かった**。`.Bridge` もAppCompat系のため同じ。プラットフォーム側のテーマを親に
+して解決した。
+
+```xml
+<style name="FlutterScreenTheme" parent="@android:style/Theme.Material.Light.DarkActionBar" />
+```
+
+ネイティブ側に手を入れた唯一の箇所。Flutter側にAppBarを持たせる選択肢もあるが、
+初期ルートが1画面のため `AppBar` は戻るボタンを出さず、ネイティブへ戻るための
+チャネルが必要になる。移行期間中はネイティブ側にバーを残す方を選んだ。
+
+**判定: ガイドに不足あり。** 8.3節として両方の選択肢を追記した。
+
+### モジュール単体での作り込み
+
+ガイド0.5節の方針どおり、fakeを差し込めるようにした。ネイティブに組み込まずに
+起動できる。
+
+```bash
+flutter run -t lib/main_dev.dart
+```
+
+`-t` はコマンドラインからの指定であり、**ネイティブ側の起動コードは
+`main.dart` の `main()` ひとつのまま**。0.1節の制約とは矛盾しない。
+
+### テスト
+
+```
+flutter test    13 passed
+flutter analyze No issues found
+```
+
+ViewModel（6件）、画面（5件）、ApiClient（2件）。チャネルとHTTPはどちらも
+差し替え可能なため、実機もネットワークも要らない。
+
+### 確認
+
+| | Android | iOS |
+|---|---|---|
+| ネイティブの入力値の表示 | 表示された | 表示された |
+| 画像 | 表示された | 表示された |
+| 言語（端末=英語） | 英語 | 英語 |
+| タイトルバー | 出る（テーマ変更後） | 出る |
+| 確定 → POST → 完了画面 | 遷移した | 遷移した |
+
+移行前の画面と同じ動作になっている。
+
+### ガイドへのフィードバック
+
+**不足3件**を修正した。いずれも「作り込みの段階で初めて出る」もので、
+0〜7節では現れない。
+
+| 箇所 | 内容 |
+|---|---|
+| 8.1節 | **不足**: ネイティブのリソース（画像）は参照できない |
+| 8.2節 | **不足**: 文言も同様。未対応だとFlutter画面だけ言語が変わらない |
+| 8.3節 | **不足**: `FlutterActivity` にはActionBarが出ない |

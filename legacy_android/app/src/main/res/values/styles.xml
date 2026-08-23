@@ -2,4 +2,19 @@
     <style name="AppTheme" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
     </style>
+
+    <!--
+      Flutter画面用のテーマ。
+
+      FlutterActivity は AppCompatActivity ではないため、AppTheme
+      （Theme.MaterialComponents.*）を当ててもタイトルバーが出ない。AppCompat系の
+      テーマは android:windowActionBar=false を指定していて、ActionBarは
+      AppCompatActivity が自分で立てているため。.Bridge のテーマでも同じ。
+
+      プラットフォーム側のテーマを親にすると、フレームワークのActionBarが出て
+      移行前の画面と同じタイトルバーになる。
+    -->
+    <style name="FlutterScreenTheme" parent="@android:style/Theme.Material.Light.DarkActionBar">
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+    </style>
 </resources>

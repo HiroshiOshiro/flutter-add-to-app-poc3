@@ -3,6 +3,8 @@ import 'dart:ui' show PlatformDispatcher;
 import 'package:flutter/material.dart';
 
 import 'routing/router.dart';
+import 'ui/core/l10n/generated/app_localizations.dart';
+import 'ui/core/themes/app_theme.dart';
 
 /// アプリ唯一のDartエントリポイント。
 ///
@@ -35,6 +37,12 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: AppTheme.light,
+      // 表示言語はホストアプリと同じくOSの設定に従う。ネイティブの
+      // strings.xml / Localizable.strings はFlutterからは参照できないため、
+      // 文言はFlutter側のARBに持ち直している。
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       initialRoute: initialRoute,
       // ガイド5.4節: 初期スタックを1画面に固定する
       onGenerateInitialRoutes: router.onGenerateInitialRoutes,

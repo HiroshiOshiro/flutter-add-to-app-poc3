@@ -1,0 +1,11 @@
+{
+  "@@locale": "en",
+  "greeting": "Hello!",
+  "confirmTitle": "Confirm your details",
+  "labelName": "Name",
+  "labelEmail": "Email",
+  "labelMessage": "Message",
+  "actionConfirm": "Confirm",
+  "submitFailed": "Failed to submit",
+  "loadFailed": "Failed to load your details"
+}
