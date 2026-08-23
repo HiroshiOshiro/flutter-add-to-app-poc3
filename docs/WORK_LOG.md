@@ -426,3 +426,45 @@ Androidの `.android/` が `flutter pub get` で生成されるのとは異な�
 **明示的なコマンドが要る**（ガイド4.2-A節に条件として記載済み）。
 
 開くのは `LegacyApp.xcodeproj`。SPM方式では `.xcworkspace` は生成されない。
+
+---
+
+## 補足: Xcodeだけ `Missing package product` になる
+
+PR: (作成中)
+
+`flutter build swift-package --platform ios` を実行した後、Xcodeでビルドすると
+次のエラーになった。
+
+```
+/Users/.../legacy_ios/LegacyApp.xcodeproj
+Missing package product 'FlutterNativeIntegration'
+```
+
+### 切り分け
+
+コマンドラインでは成功していた。パッケージ解決だけを単体で実行しても成功する。
+
+```
+$ xcodebuild -project LegacyApp.xcodeproj -scheme LegacyApp -resolvePackageDependencies
+resolved source packages: FlutterFramework, FlutterNativeTools,
+                          FlutterPluginRegistrant, FlutterNativeIntegration
+```
+
+**プロジェクト定義とパッケージの実体は正しく、Xcode側の状態が古いだけ**と
+判断できた。`project.xcworkspace/xcuserdata/.../UserInterfaceState.xcuserstate`
+が残っており、Xcodeでプロジェクトを開いたまま `xcodegen generate` で
+`.pbxproj` を差し替えたことが原因。
+
+### 対処
+
+Xcodeを終了し、Xcode側の状態とDerivedDataを消してから開き直して解消した。
+
+### ガイドへのフィードバック
+
+**4.3節に不足があった。** 「プロジェクト再生成 → `pod install` → ビルド」の
+順序は書いてあったが、**「再生成時にXcodeを閉じる」が書かれていなかった**。
+
+SPM方式では `pod install` の工程が無いため、順序の記述だけでは今回の症状を
+防げない。4.3節に条件2として追記し、症状一覧にも追加した。切り分けに使える
+`-resolvePackageDependencies` も載せた。

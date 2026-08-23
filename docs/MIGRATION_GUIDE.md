@@ -522,16 +522,43 @@ Dartを変更しても、再度コマンドを実行するまでホスト側に�
 
 ### 4.3 プロジェクト生成ツールとの併用順序
 
-**条件**: プロジェクト再生成は、CocoaPodsやXcodeが `.pbxproj` に注入した設定を
+**条件1**: プロジェクト再生成は、CocoaPodsやXcodeが `.pbxproj` に注入した設定を
 消す。
 
 **対処**: 以下の順序を毎回守る。
 
 ```
-プロジェクト定義を変更
+Xcodeを終了
+  → プロジェクト定義を変更
   → xcodegen generate（等）
   → pod install（CocoaPods方式の場合）
-  → .xcworkspace / .xcodeproj をビルド
+  → .xcworkspace / .xcodeproj を開いてビルド
+```
+
+**条件2**: 再生成のときにXcodeを開いたままにしない。開いたまま `.pbxproj` を
+差し替えると、Xcodeが古い構造を保持したままになる。
+
+**確認**: SPM方式では次のエラーになる。
+
+```
+Missing package product 'FlutterNativeIntegration'
+```
+
+コマンドラインでは成功するのにXcodeだけ失敗する場合、この状態を疑う。
+パッケージ解決だけを単体で実行して切り分けられる。
+
+```bash
+xcodebuild -project MyApp.xcodeproj -scheme MyApp -resolvePackageDependencies
+# resolved source packages: ... と出れば、プロジェクト定義とパッケージの実体は正しい
+```
+
+**対処**: Xcodeを終了し、Xcode側の状態を消してから開き直す。
+
+```bash
+rm -rf MyApp.xcodeproj/project.xcworkspace/xcuserdata
+rm -rf MyApp.xcodeproj/xcuserdata
+rm -rf ~/Library/Developer/Xcode/DerivedData/MyApp-*
+open MyApp.xcodeproj
 ```
 
 ### 4.4 Debugビルドにローカルネットワーク権限を追加する
@@ -834,6 +861,7 @@ Androidでは、DebugビルドのAPKが大きいため上書きインストー�
 | `pod install` が `Missing flutter_post_install` で失敗 | Podfileのフック未記載 | 4.2-B節 |
 | iOSでFlutter依存が見つからない | `.xcodeproj` を直接開いている | 4.2-B節 |
 | プロジェクト再生成後にビルドフェーズが消える | 生成 → `pod install` の順序 | 4.3節 |
+| `Missing package product '...'`（Xcodeのみ失敗） | 再生成時にXcodeを開いたままにした | 4.3節 |
 | `cannot find 'FlutterEngineGroup' in scope`（SPM） | `import Flutter` していない | 4.2-A節 |
 | ObjCから `use of undeclared identifier <Swiftのクラス>` | Bridging Header が無い | 0.3節 |
 | `Setting a message handler before the FlutterEngine has been run` | プラグイン登録がエンジン実行より前 | 5.3節 |
