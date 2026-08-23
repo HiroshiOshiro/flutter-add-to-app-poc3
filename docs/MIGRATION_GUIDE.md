@@ -16,12 +16,12 @@
 
 ### 0.1 設計上の制約
 
-導入方式を決める前に確認する。後から変更すると作り直しになる。
+組み込み方式を決める前に確認する。後から変更すると作り直しになる。
 
 | 制約 | 内容 |
 |---|---|
 | Flutterモジュールは1アプリに1つ | 複数のFlutterライブラリを1つのアプリに組み込むことはできない。画面ごとにモジュールを分ける構成は取れない |
-| モバイルはマルチエンジンのみ | 1つのDartプログラムから複数ビューを出す方式（マルチビュー）はWeb専用 |
+| Flutter画面ごとにエンジンが要る | 1つのDartプログラムから複数のFlutter画面を同時に出す方式はWeb専用。モバイルでは画面ごとに独立したエンジンを持つ（5.1節） |
 | AndroidXが必須 | Androidホストアプリは AndroidX 化されていること |
 | 対応ABI | Androidは x86_64 / armeabi-v7a / arm64-v8a のみ |
 | プラグインの互換性 | `FlutterPlugin` インターフェースに対応していること。`FlutterActivity` が常に存在する前提で書かれたプラグインは動作しない場合がある |
@@ -41,6 +41,18 @@
 | Android: Gradleを動かすJDK | 17 以上 | `./gradlew -version` | `Launcher JVM` が `17` 以上 |
 | Android: AndroidX | 必須 | `grep useAndroidX gradle.properties` | `android.useAndroidX=true` |
 | iOS: Xcode | 15.0 以上 | `xcodebuild -version` | `Xcode 15.0` 以上 |
+| iOS: Deployment Target | 15.0 以上 | 下記 | ホストアプリの設定値がこれ以上 |
+
+**iOSのDeployment Targetは、Flutterが生成するSwiftパッケージが宣言する。**
+古いアプリでは最初に効く条件になるため、着手前に確認する。
+
+```bash
+grep -A2 "platforms" my_flutter_module/build/ios/SwiftPackages/FlutterNativeIntegration/Package.swift
+# .iOS("15.0")
+```
+
+ホストアプリ側が下回っていると、パッケージ解決の時点で失敗する。引き上げられない
+場合は、対応する下限が低い古いFlutterを使うか、対応OSを切る判断が要る。
 
 満たさない場合、Flutter Gradleプラグインが下限を明示したエラーを出す。
 
@@ -137,8 +149,8 @@ MyiOSApp/
 
 7節を終えた時点でネイティブ側の作業は完了し、以降はDartだけを触ることになる。
 
-**組み込みを先にする理由**: 統合で起きる問題はビルド設定の問題であり、画面の
-内容とは無関係。画面を作り込んでから統合すると、失敗したときに「配線の問題か
+**組み込みを先にする理由**: 組み込みで起きる問題はビルド設定の問題であり、画面の
+内容とは無関係。画面を作り込んでから組み込むと、失敗したときに「配線の問題か
 自分のコードの問題か」を同時に疑うことになる。
 
 **条件**: 6節を完了するには、画面が必要とするデータが確定していること。UIの
@@ -221,7 +233,7 @@ flowchart TB
 
 各ステップの終わりでビルドと動作確認を行う。片方のOSだけ先に進めてもよい。
 
-### 途中で選ぶこと
+### 1.1 途中で選ぶこと
 
 3か所ある。**いずれも後から変えると手戻りが大きい**ため、その節に入る前に決める。
 
@@ -329,6 +341,8 @@ dependencyResolutionManagement {
 
 判断の軸は Flutterコードの量ではなく、**Flutterを触らない開発者の割合**。
 
+選んだ方を1つだけ実施する。以降の `-A` `-B` は排他的な選択肢を表す。
+
 ### 3.3-A source module 方式
 
 ```groovy
@@ -403,15 +417,17 @@ cd MyAndroidApp
 
 ## 4. iOSへ組み込む
 
-### 4.1 方式を選ぶ
+### 4.1 組み込み方式を選ぶ
 
 | 方式 | 状態 | 適する状況 |
 |---|---|---|
-| **Swift Package Manager** | 推奨（Flutter 3.44以降） | 新規に導入する場合 |
+| **Swift Package Manager** | 推奨（Flutter 3.44以降） | 新規に組み込む場合 |
 | CocoaPods | メンテナンスモード | 既にCocoaPodsを使っている場合 |
 | 手動フレームワーク埋め込み | レガシー | SPMもCocoaPodsも使えない場合 |
 
 CocoaPodsのレジストリは2026年12月2日に読み取り専用になる。
+
+選んだ方を1つだけ実施する。以降の `-A` `-B` `-C` は排他的な選択肢を表す。
 
 ### 4.2-A Swift Package Manager 方式
 
@@ -719,22 +735,7 @@ MissingPluginException(No implementation found for method readFormData
 **エンジン生成 → `configureFlutterEngine`（チャネル登録）→ Dart実行**の
 順序を保証する。
 
-### チャネルを登録する場所
-
-`FlutterActivity` を継承したサブクラスを1つ作り、`configureFlutterEngine` で
-登録する。画面ごとに作るのではなく、**Flutter画面全体で1つ**。
-
-```kotlin
-class MyFlutterActivity : FlutterActivity() {
-    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
-        super.configureFlutterEngine(flutterEngine)   // プラグインの登録
-        NativeServices.attach(this, flutterEngine)    // 独自チャネルはその後
-    }
-}
-```
-
-ハンドラが画面遷移などでActivityを必要とするため、エンジン生成時ではなく
-ここで登録する。iOSも同様に `FlutterViewController` のサブクラスで登録する。
+チャネルをどこで登録するかは6.4節。
 
 **条件**: キャッシュエンジンに初期ルートを指定する場合、Dartのエントリポイントを
 実行する**前**に設定すること。
@@ -797,6 +798,9 @@ MaterialApp(
 ```
 
 ### 5.5 キャッシュエンジンのライフサイクル
+
+**条件**: 5.1節でキャッシュエンジンを選んだ場合に読む。`FlutterEngineGroup` を
+使う場合は該当しない。
 
 キャッシュエンジンはUIのコンテナより長生きし、画面が破棄された後もDartコードは
 動き続ける。UIが無い状態での通信やデータ処理に利用できる。停止する場合は
@@ -901,6 +905,23 @@ error: sFormData is not public in BaseActivity;
 **対処**: 可視性を広げるか、アクセサを足す。既存コードに手を入れることになる
 ため、**移行が進めばこの変更は不要になる**（データの所有がFlutterへ移るため）
 とコメントを残しておくと、後で外し忘れない。
+
+### 6.4 チャネルを登録する場所
+
+`FlutterActivity` を継承したサブクラスを1つ作り、`configureFlutterEngine` で
+登録する。画面ごとに作るのではなく、**Flutter画面全体で1つ**。
+
+```kotlin
+class MyFlutterActivity : FlutterActivity() {
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)   // プラグインの登録
+        NativeServices.attach(this, flutterEngine)    // 独自チャネルはその後
+    }
+}
+```
+
+ハンドラが画面遷移などでActivityを必要とするため、エンジン生成時ではなく
+ここで登録する。iOSも同様に `FlutterViewController` のサブクラスで登録する。
 
 ---
 
