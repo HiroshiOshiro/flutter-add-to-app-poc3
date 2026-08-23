@@ -2,7 +2,7 @@
 
 ホストアプリに組み込んだFlutterのコードを、ブレークポイントを張って追う手順。
 
-導入手順そのものは `MIGRATION_GUIDE.md`、作業の記録は `WORK_LOG.md` にある。
+移行の手順は `MIGRATION_GUIDE.md`、作業の記録は `WORK_LOG.md` にある。
 
 ---
 

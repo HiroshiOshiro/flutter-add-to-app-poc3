@@ -1,7 +1,7 @@
 # flutter-add-to-app-poc3
 
 既存のネイティブアプリ（iOS: Objective-C / Android: Java）に、
-`docs/MIGRATION_GUIDE.md` の手順どおりにFlutterを導入する。
+`docs/MIGRATION_GUIDE.md` の手順どおりにFlutterを組み込む。
 
 先行リポジトリ
 [flutter-add-to-app-poc](https://github.com/HiroshiOshiro/flutter-add-to-app-poc)
@@ -31,8 +31,8 @@
 - `legacy_android/` — 移行前のAndroidアプリ（Java）
 - `legacy_ios/` — 移行前のiOSアプリ（Objective-C）
 - `docs/SUMMARY.md` — 作業概要
-- `docs/MIGRATION_PLAN_TEMPLATE.md` — 移行計画書の雛形（着手前に埋める）
-- `docs/MIGRATION_GUIDE.md` — add-to-app の導入手順
+- `docs/MIGRATION_PLAN.md` — 移行の計画（アーキテクチャ・役割分担）の雛形
+- `docs/MIGRATION_GUIDE.md` — 移行の手順
 - `legacyapp_flutter/` — Flutterモジュール
 - `docs/DEBUGGING.md` — Flutter側のデバッグ手順
 - `docs/WORK_LOG.md` — 作業ログ（各節の記録とPRリンク）
