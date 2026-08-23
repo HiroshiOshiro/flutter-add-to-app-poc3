@@ -34,6 +34,77 @@
 - `legacyapp_flutter/` — Flutterモジュール
 - `docs/WORK_LOG.md` — 作業ログ（各節の記録とPRリンク）
 
+## ビルドする
+
+### 共通の準備
+
+Flutterモジュールの依存を取得する。`legacyapp_flutter/.android/` と `.ios/` が
+生成され、ホストアプリはそこを参照する。
+
+```bash
+cd legacyapp_flutter
+flutter pub get
+```
+
+### Android Studio
+
+`legacy_android` を開いてビルドする。
+
+**`local.properties` にAndroid SDKの場所が必要。** 無いと
+`SDK location not found` で失敗する。Android Studioでプロジェクトを開くと
+自動生成されるが、コマンドラインだけで作業する場合は手で作る（絶対パスを含む
+マシン固有の設定のため、リポジトリには含まれない）。
+
+```bash
+echo "sdk.dir=$HOME/Library/Android/sdk" > legacy_android/local.properties
+```
+
+コマンドラインの場合:
+
+```bash
+cd legacy_android
+./gradlew assembleDebug
+```
+
+### Xcode
+
+**先にSwiftパッケージを生成する。** 出力先 `legacyapp_flutter/build/` は
+バージョン管理対象外のため、チェックアウト直後や `flutter clean` の後は
+このコマンドが必要（ガイド4.2-A節）。Androidの `.android/` が
+`flutter pub get` で生成されるのとは異なる。
+
+```bash
+cd legacyapp_flutter
+flutter build swift-package --platform ios
+```
+
+そのうえで `LegacyApp.xcodeproj` を開く。**SPM方式では `.xcworkspace` は
+生成されない**（CocoaPods方式との違い）。
+
+```bash
+open legacy_ios/LegacyApp.xcodeproj
+```
+
+`project.yml` や `LegacyApp/Sources` 配下を変更した場合は `xcodegen generate`
+を実行してから開く。
+
+コマンドラインの場合:
+
+```bash
+cd legacy_ios
+xcodebuild -project LegacyApp.xcodeproj -scheme LegacyApp \
+  -sdk iphonesimulator -configuration Debug \
+  -destination "generic/platform=iOS Simulator" build
+```
+
+### Flutterモジュール単体
+
+```bash
+cd legacyapp_flutter
+flutter analyze
+flutter run -d <device-id>
+```
+
 ## 進捗
 
 | ステップ（MIGRATION_GUIDE の節） | 状態 |

@@ -399,3 +399,30 @@ $ ls -dlt ~/Library/Developer/Xcode/DerivedData/LegacyApp-*/Build/Products/Debug
 
 なし。5.2節のテーマ、5.4節の初期ルート、0.3節のBridging Header はいずれも
 条件として明記されていたため、**エラーを踏む前に対処できた**。
+
+---
+
+## 補足: IDEからのビルド
+
+PR: https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/6
+
+CLIでのビルドしか確認していなかったため、Xcode / Android Studio から開いた
+場合の前提を確認してREADMEに追加した。
+
+**両OSともIDEからビルドできる。** ただしそれぞれ、バージョン管理対象外で
+チェックアウト直後に存在しないものが1つずつある。
+
+| IDE | 必要なもの | 無い場合 |
+|---|---|---|
+| Android Studio | `legacy_android/local.properties` | `SDK location not found` |
+| Xcode | `legacyapp_flutter/build/ios/SwiftPackages/` | パッケージを解決できない |
+
+`local.properties` はAndroid Studioがプロジェクトを開いたときに自動生成する
+ため、IDEから始める場合は不要。CLIで作業していたため `ANDROID_HOME` 環境変数で
+代用しており、この不足に気づいていなかった。
+
+Xcode側は `flutter build swift-package --platform ios` の実行が必要。
+Androidの `.android/` が `flutter pub get` で生成されるのとは異なり、
+**明示的なコマンドが要る**（ガイド4.2-A節に条件として記載済み）。
+
+開くのは `LegacyApp.xcodeproj`。SPM方式では `.xcworkspace` は生成されない。
