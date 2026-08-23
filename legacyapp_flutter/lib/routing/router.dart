@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../ui/confirm/widgets/confirm_screen.dart';
 import '../ui/placeholder/placeholder_screen.dart';
 import 'routes.dart';
 
@@ -9,9 +10,7 @@ import 'routes.dart';
 /// 1行追加だけ。ネイティブ側には画面ごとの起動コードを足さない。
 Map<String, WidgetBuilder> registeredScreens() {
   return <String, WidgetBuilder>{
-    // 5節の時点ではプレースホルダ。作り込みで実画面に差し替える。
-    AppRoutes.confirm: (_) =>
-        const PlaceholderScreen(routeName: AppRoutes.confirm),
+    AppRoutes.confirm: (_) => ConfirmScreen(),
   };
 }
 

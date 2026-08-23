@@ -100,10 +100,17 @@ xcodebuild -project LegacyApp.xcodeproj -scheme LegacyApp \
 
 ### Flutterモジュール単体
 
+ホストアプリに組み込まずに画面を動かせる。チャネル越しの依存はfakeに
+差し替わる。
+
 ```bash
 cd legacyapp_flutter
-flutter analyze
-flutter run -d <device-id>
+flutter run -t lib/main_dev.dart -d <device-id>
+```
+
+```bash
+cd legacyapp_flutter
+flutter analyze && flutter test
 ```
 
 ## 進捗
@@ -117,6 +124,7 @@ flutter run -d <device-id>
 | 5. Flutter画面を表示する | 完了（プレースホルダ） |
 | 6. ネイティブとの通信 | 完了 |
 | 7. デバッグ | 完了 |
+| 8. 画面の作り込み | 完了（確認画面） |
 
-導入手順（0〜7節）は完了。次はFlutter画面の作り込み（ガイド0.5節の方針により
-ネイティブ側の作業が終わってから行う）。
+確認画面のFlutter化が完了し、移行前と同じ動作になっている。次の画面（入力・完了）
+へ進む場合、`AppRoutes` と `registeredScreens()` への追加が作業の起点になる。

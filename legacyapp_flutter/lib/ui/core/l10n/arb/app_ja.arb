@@ -1,0 +1,11 @@
+{
+  "@@locale": "ja",
+  "greeting": "こんにちは!",
+  "confirmTitle": "入力内容の確認",
+  "labelName": "名前",
+  "labelEmail": "メールアドレス",
+  "labelMessage": "メッセージ",
+  "actionConfirm": "確定",
+  "submitFailed": "送信に失敗しました",
+  "loadFailed": "入力内容の取得に失敗しました"
+}

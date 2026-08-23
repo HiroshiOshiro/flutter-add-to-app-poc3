@@ -133,7 +133,7 @@ MyiOSApp/
 | 5 | 表示の仕組みを通す | プレースホルダ |
 | 6 | チャネル実装（ネイティブ側含む） | プレースホルダに取得値を表示 |
 | 7 | デバッグ環境 | プレースホルダのまま |
-| — | **UI・機能の作り込み** | ここで作る |
+| 8 | **UI・機能の作り込み** | ここで作る |
 
 7節を終えた時点でネイティブ側の作業は完了し、以降はDartだけを触ることになる。
 
@@ -216,6 +216,7 @@ flowchart TB
     D --> E
     E --> F["6. ネイティブとの通信"]
     F --> G["7. デバッグ"]
+    G --> H["8. 画面の作り込み"]
 
     C -.-> C1["source module / AAR"]
     D -.-> D1["SPM / CocoaPods / 手動"]
@@ -916,7 +917,116 @@ Androidでは、DebugビルドのAPKが大きいため上書きインストー�
 
 ---
 
-## 8. 症状と対処の一覧
+## 8. 画面の作り込み
+
+ネイティブ側の作業（0〜7節）が完了してから行う。以降はDartだけを触る。
+
+作り込みそのものは通常のFlutter開発だが、**移行では「既存画面と同じものを
+作る」ことが要件になる**ため、ネイティブ側のリソースをFlutterへ持ち直す作業が
+発生する。
+
+### 8.1 画像・フォントはFlutter側へ移す
+
+**条件**: ネイティブのリソース（`res/drawable`、Asset Catalog）はFlutterから
+参照できない。チャネルで渡すこともできない。
+
+**対処**: モジュールへコピーし、`pubspec.yaml` に登録する。
+
+```yaml
+flutter:
+  assets:
+    - assets/images/
+```
+
+移行が完了するまでは、同じ画像がネイティブ側とFlutter側の両方に存在する状態に
+なる。ネイティブ側から消せるのは、その画像を使う画面がすべてFlutter化された
+後になる。
+
+### 8.2 文言もFlutter側へ移す
+
+**条件**: `strings.xml` / `Localizable.strings` も同様に参照できない。
+ホストアプリが多言語対応している場合、Flutter側で何もしないと
+**Flutter画面だけ言語が変わらない**。
+
+**確認**: 端末の言語を切り替えて、Flutter画面とネイティブ画面の表示言語が
+一致するか見る。片方だけ変われば対応漏れ。
+
+**対処**: 文言をFlutter側（ARB）へ移し、`MaterialApp` に登録する。
+
+```yaml
+# pubspec.yaml
+dependencies:
+  flutter_localizations:
+    sdk: flutter
+flutter:
+  generate: true
+```
+
+```yaml
+# l10n.yaml
+arb-dir: lib/ui/core/l10n/arb
+template-arb-file: app_en.arb
+output-localization-file: app_localizations.dart
+output-dir: lib/ui/core/l10n/generated
+```
+
+```dart
+MaterialApp(
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales,
+  ...
+)
+```
+
+登録しないと `supportedLocales` の既定（英語のみ）が使われ、端末が日本語でも
+英語のまま表示される。
+
+**注意**: `l10n.yaml` を置くと `flutter gen-l10n` のコマンドライン引数は
+無視される。`synthetic-package` は廃止済みで、指定すると警告が出る。
+
+### 8.3 ネイティブ側のバーとの関係を決める
+
+Flutter画面を差し込むと、**ホストアプリのタイトルバーがそのまま出るとは
+限らない**。移行前後で画面の見た目が変わるため、どちらがバーを持つかを決める。
+
+| | 移行前 | Flutter画面 |
+|---|---|---|
+| Android | ActionBar が出る | **出ない** |
+| iOS | ナビゲーションバーが出る | 出る（戻るボタンも残る） |
+
+**Androidで出ない理由**: `FlutterActivity` は `AppCompatActivity` ではない。
+AppCompat系のテーマ（`Theme.AppCompat.*` / `Theme.MaterialComponents.*`）は
+`android:windowActionBar=false` を指定していて、ActionBarは
+`AppCompatActivity` が自分で立てている。`.Bridge` のテーマでも同じ。
+
+**対処A: ネイティブ側にバーを出す**（移行前と同じ見た目にする）
+
+`FlutterActivity` 用にプラットフォーム側のテーマを親にしたテーマを用意し、
+マニフェストで当てる。
+
+```xml
+<style name="FlutterScreenTheme" parent="@android:style/Theme.Material.Light.DarkActionBar" />
+```
+
+```xml
+<activity
+    android:name=".flutter.FlutterScreenActivity"
+    android:theme="@style/FlutterScreenTheme"
+    ... />
+```
+
+**対処B: Flutter側にバーを持たせる**（最終形に寄せる）
+
+Flutterの `Scaffold` に `AppBar` を置き、ネイティブ側のバーを隠す。全画面の
+Flutter化が完了したときの姿に近いが、移行期間中は**戻る手段をFlutter側で
+用意する必要がある**（初期ルートが1画面のため `AppBar` は戻るボタンを出さない）。
+ネイティブへ戻るためのチャネルが1つ増える。
+
+いずれの場合も、**両方がバーを持つと二重に表示される**。片方に寄せる。
+
+---
+
+## 9. 症状と対処の一覧
 
 | 症状 | 原因 | 対処 |
 |---|---|---|
@@ -938,6 +1048,9 @@ Androidでは、DebugビルドのAPKが大きいため上書きインストー�
 | iOSで `flutter attach` が繋がらない | 権限が無い／自動探索が働かない | 4.4節 / 7.1節 |
 | ホットリロードが成功と出るのに画面が変わらない | ルートの画面がインラインのクロージャ | 7.2節 |
 | `INSTALL_FAILED_INSUFFICIENT_STORAGE` | Debug APKが大きく上書きできない | 7.4節 |
+| Flutter画面だけ言語が切り替わらない | `localizationsDelegates` / `supportedLocales` の未設定 | 8.2節 |
+| AndroidでFlutter画面だけタイトルバーが消える | `FlutterActivity` は `AppCompatActivity` ではない | 8.3節 |
+| Flutter画面で画像が出ない | ネイティブのリソースは参照できない | 8.1節 |
 
 ---
 
