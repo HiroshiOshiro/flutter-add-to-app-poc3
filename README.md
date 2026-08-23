@@ -34,6 +34,7 @@
 - `legacyapp_flutter/` — Flutterモジュール
 - `docs/DEBUGGING.md` — Flutter側のデバッグ手順
 - `docs/WORK_LOG.md` — 作業ログ（各節の記録とPRリンク）
+- `.gitlab-ci.yml` — CI
 
 ## ビルドする
 
@@ -112,6 +113,28 @@ flutter run -t lib/main_dev.dart -d <device-id>
 cd legacyapp_flutter
 flutter analyze && flutter test
 ```
+
+## CI
+
+`.gitlab-ci.yml`。**GitLab 11.3.4 で動くことを条件**にしているため、
+`rules:` / `needs:` / `include:` / `only: changes:` は使わず、`only` と
+YAMLアンカーで組んである。
+
+| ジョブ | stage | Runner | 内容 |
+|---|---|---|---|
+| `flutter:analyze` | analyze | docker | `flutter analyze` |
+| `flutter:test` | test | docker | `flutter test` |
+| `android:build` | build | docker | `./gradlew assembleDebug` |
+| `ios:build` | build | macos | `xcodebuild`（手動実行） |
+
+`ios:build` はXcodeが要るためmacOSのRunnerでしか動かない。Runnerが無い環境で
+パイプラインが滞留しないよう手動実行にしてある。
+
+組み込み方式に由来する準備がそれぞれのジョブに入っている。
+
+- Android — `local.properties` の生成と、`settings.gradle` が参照する
+  `.android/include_flutter.groovy` の生成（`flutter pub get`）
+- iOS — `flutter build swift-package`（出力先はバージョン管理外のため毎回必要）
 
 ## 進捗
 
