@@ -561,7 +561,7 @@ Androidは自動探索で接続できる（追加設定なし）。
 
 ## 6節: ネイティブとの通信
 
-PR: (作成中)
+PR: https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/9
 
 ### チャネルの粒度（6.1節）
 
