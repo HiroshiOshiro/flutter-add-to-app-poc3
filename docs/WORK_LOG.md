@@ -431,7 +431,7 @@ Androidの `.android/` が `flutter pub get` で生成されるのとは異な�
 
 ## 補足: Xcodeだけ `Missing package product` になる
 
-PR: (作成中)
+PR: https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/7
 
 `flutter build swift-package --platform ios` を実行した後、Xcodeでビルドすると
 次のエラーになった。
