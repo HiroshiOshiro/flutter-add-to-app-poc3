@@ -10,7 +10,7 @@ import 'routes.dart';
 /// 1行追加だけ。ネイティブ側には画面ごとの起動コードを足さない。
 Map<String, WidgetBuilder> registeredScreens() {
   return <String, WidgetBuilder>{
-    AppRoutes.confirm: (_) => ConfirmScreen(),
+    AppRoutes.confirm: (_) => const ConfirmScreen(),
   };
 }
 

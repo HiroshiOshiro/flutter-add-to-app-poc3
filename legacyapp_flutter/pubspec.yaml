@@ -34,6 +34,7 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   intl: any
+  flutter_riverpod: ^3.4.2
 
 dev_dependencies:
   flutter_test:

@@ -1,3 +1,5 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../domain/models/form_data.dart';
 import '../services/api_client.dart';
 import '../services/legacy_store_service.dart';
@@ -65,3 +67,11 @@ class FakeConfirmRepository implements ConfirmRepository {
     return submitResult;
   }
 }
+
+/// 確認画面が使うRepository。
+///
+/// **差し替え点はここ一箇所。** モジュール単体での実行（`main_dev.dart`）と
+/// テストは `overrides` で [FakeConfirmRepository] に置き換える。
+final confirmRepositoryProvider = Provider<ConfirmRepository>(
+  (Ref ref) => DefaultConfirmRepository(),
+);

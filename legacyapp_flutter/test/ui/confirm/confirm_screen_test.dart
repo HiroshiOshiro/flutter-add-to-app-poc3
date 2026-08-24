@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:legacyapp_flutter/data/repositories/confirm_repository.dart';
 import 'package:legacyapp_flutter/domain/models/form_data.dart';
@@ -7,12 +8,20 @@ import 'package:legacyapp_flutter/ui/core/l10n/generated/app_localizations.dart'
 import 'package:legacyapp_flutter/ui/core/l10n/generated/app_localizations_en.dart';
 import 'package:legacyapp_flutter/ui/core/l10n/generated/app_localizations_ja.dart';
 
-Widget _host(ConfirmRepository repository, {Locale locale = const Locale('en')}) {
-  return MaterialApp(
-    locale: locale,
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
-    supportedLocales: AppLocalizations.supportedLocales,
-    home: ConfirmScreen(repository: repository),
+Widget _host(
+  ConfirmRepository repository, {
+  Locale locale = const Locale('en'),
+}) {
+  return ProviderScope(
+    overrides: [
+      confirmRepositoryProvider.overrideWithValue(repository),
+    ],
+    child: MaterialApp(
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: const ConfirmScreen(),
+    ),
   );
 }
 
@@ -67,6 +76,15 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
+  testWidgets('shows a message when the fetch fails', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(_host(_FailingRepository()));
+    await tester.pumpAndSettle();
+
+    expect(find.text(_en.loadFailed), findsOneWidget);
+  });
+
   testWidgets('the confirm button submits the data', (
     WidgetTester tester,
   ) async {
@@ -92,4 +110,12 @@ void main() {
     expect(find.text(_en.submitFailed), findsOneWidget);
     expect(find.text(_en.confirmTitle), findsOneWidget);
   });
+}
+
+class _FailingRepository implements ConfirmRepository {
+  @override
+  Future<FormDataModel> load() async => throw Exception('channel missing');
+
+  @override
+  Future<bool> submit(FormDataModel data) async => false;
 }
