@@ -69,6 +69,7 @@ variables:
     curl -fsSL -o /tmp/flutter.tar.xz \
       "https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_${FLUTTER_VERSION}-stable.tar.xz"
     tar -xJf /tmp/flutter.tar.xz -C "$FLUTTER_SDK" --strip-components=1
+    rm -f /tmp/flutter.tar.xz
   fi
   export PATH="$FLUTTER_SDK/bin:$PATH"
   # SDKの所有者とジョブの実行ユーザーが異なると、gitが dubious ownership で
@@ -141,9 +142,11 @@ android:build:
     - cd ..
   script:
     - cd legacy_android
-    - ./gradlew --no-daemon assembleDebug
-  # APKは artifacts にしない。Flutterを含むDebug APKは1GBを超えるため、
-  # 保存するとジョブの大半がアップロード時間になる。
+    # ABIを1つに絞る（手順3.4節）。全ABIだとAPKが1.4GBになり、共有Runnerの
+    # ディスクが尽きて `No space left on device` でパッケージングに失敗する。
+    - ./gradlew --no-daemon assembleDebug -PtargetAbi=x86_64
+  # APKは artifacts にしない。1ABIに絞っても400MBあり、保存するとジョブの
+  # 大半がアップロード時間になる。
 
 # ---------------------------------------------------------------------------
 # iOS（SPM 方式）
