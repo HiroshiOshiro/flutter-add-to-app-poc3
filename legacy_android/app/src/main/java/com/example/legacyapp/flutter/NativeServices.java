@@ -7,9 +7,6 @@ import androidx.annotation.NonNull;
 import com.example.legacyapp.BaseActivity;
 import com.example.legacyapp.FormData;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.plugin.common.MethodChannel;
 
@@ -22,7 +19,6 @@ import io.flutter.plugin.common.MethodChannel;
  */
 public final class NativeServices {
 
-    private static final String CHANNEL_LEGACY_STORE = "com.example.legacyapp/legacy_store";
     private static final String CHANNEL_NAVIGATION = "com.example.legacyapp/navigation";
 
     private NativeServices() {
@@ -38,20 +34,20 @@ public final class NativeServices {
      *
      * <p>このデータの所有者はネイティブのままで、Flutterからは読むだけ。
      * 項目ごとにメソッドを分けず、まとめて返す。
+     *
+     * <p>チャネル名とメソッド名は {@link LegacyStorePigeon} が持つ。Dart側の
+     * 定義と食い違えばコンパイルエラーになるため、ここで文字列を書かない。
      */
     private static void attachLegacyStore(@NonNull FlutterEngine engine) {
-        new MethodChannel(engine.getDartExecutor().getBinaryMessenger(), CHANNEL_LEGACY_STORE)
-                .setMethodCallHandler((call, result) -> {
-                    if ("readFormData".equals(call.method)) {
-                        FormData data = BaseActivity.sFormData;
-                        Map<String, String> values = new HashMap<>();
-                        values.put("name", data.name == null ? "" : data.name);
-                        values.put("email", data.email == null ? "" : data.email);
-                        values.put("message", data.message == null ? "" : data.message);
-                        result.success(values);
-                    } else {
-                        result.notImplemented();
-                    }
+        LegacyStorePigeon.LegacyStoreApi.setUp(
+                engine.getDartExecutor().getBinaryMessenger(),
+                () -> {
+                    FormData data = BaseActivity.sFormData;
+                    return new LegacyStorePigeon.FormDataDto.Builder()
+                            .setName(data.name == null ? "" : data.name)
+                            .setEmail(data.email == null ? "" : data.email)
+                            .setMessage(data.message == null ? "" : data.message)
+                            .build();
                 });
     }
 

@@ -938,6 +938,49 @@ class MyFlutterActivity : FlutterActivity() {
 ハンドラが画面遷移などでActivityを必要とするため、エンジン生成時ではなく
 ここで登録する。iOSも同様に `FlutterViewController` のサブクラスで登録する。
 
+### 6.5 Pigeonでチャネルを生成する（任意）
+
+手書きのチャネルは、**チャネル名・メソッド名・引数の型のいずれかが食い違うと
+無言で失敗する**（7.3節）。[Pigeon](https://pub.dev/packages/pigeon) はDartの
+定義からDart / Java / Kotlin / Swift / Objective-Cのコードを生成するため、
+食い違いがコンパイルエラーになる。
+
+**条件**: 生成先をモジュールの `.android/` `.ios/` にしない。あれは
+`flutter pub get` のたびに再生成される足場のため、生成コードが消える。
+ホストアプリのソースツリーへ出す。
+
+```dart
+@ConfigurePigeon(
+  PigeonOptions(
+    dartOut: 'lib/data/services/generated/legacy_store.g.dart',
+    javaOut: '../MyAndroidApp/app/src/main/java/com/example/myapp/flutter/LegacyStorePigeon.java',
+    javaOptions: JavaOptions(package: 'com.example.myapp.flutter'),
+    swiftOut: '../MyiOSApp/MyApp/Sources/LegacyStorePigeon.swift',
+  ),
+)
+```
+
+**生成物はコミットする。** ネイティブ側のビルドが参照するため、CIで再生成
+しない構成なら必須。
+
+**確認**: 生成後、ネイティブ側は生成インターフェースを実装する形になり、
+チャネル名の文字列がハンドラから消える。
+
+```java
+LegacyStorePigeon.LegacyStoreApi.setUp(
+        engine.getDartExecutor().getBinaryMessenger(),
+        () -> new LegacyStorePigeon.FormDataDto.Builder()...build());
+```
+
+**防げないもの**: 登録の順序（5.2節）。`setUp()` をいつ呼ぶかは自分で決めるため、
+Dartの実行より後に登録すれば手書きのときと同じように失敗する。Pigeonが解決
+するのは**名前と型の一致**だけ。
+
+Dart側は生成クラスをそのまま使わず、薄いServiceで包むとよい。移行完了時に
+消えるのはチャネルであってRepositoryではないため、生成された型が上層へ漏れない。
+
+---
+
 ---
 
 ## 7. デバッグ

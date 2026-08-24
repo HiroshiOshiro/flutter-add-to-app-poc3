@@ -63,6 +63,14 @@ fvm flutter pub get
 
 `legacyapp_flutter/.android/` と `.ios/` が生成され、ホストアプリはそこを参照する。
 
+`legacy_store` チャネルは Pigeon で生成している。定義（`pigeons/legacy_store.dart`）を
+変更したら再生成する。生成物はコミット済みのため、変更しない限り実行は不要。
+
+```bash
+cd legacyapp_flutter
+fvm dart run pigeon --input pigeons/legacy_store.dart
+```
+
 ### Android Studio
 
 `legacy_android` を開いてビルドする。
