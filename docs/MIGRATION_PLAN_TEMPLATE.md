@@ -182,21 +182,36 @@ myapp_flutter     ホストアプリ名 + _flutter
 ホストアプリの識別子から**逆ドメインの部分**を取る。末尾のアプリ名部分は
 `<module_name>` が担うため含めない。
 
-**条件**: **ハイフンを含めない。** Androidのパッケージ名はJavaの識別子である
-必要があり、ハイフンを使えない。
+**渡した値がそのまま両OSに入るわけではない。** 各プラットフォームで使えない文字は
+自動で除去される。
 
-**確認**: エラーにはならず、**Androidだけ黙って除去される。**
+| `--org` に含めた文字 | Android | iOS |
+|---|---|---|
+| ハイフン `-` | **除去される** | 残る |
+| アンダースコア `_` | 残る | **除去される** |
+
+Androidのパッケージ名はJavaの識別子である必要がありハイフンを使えない。iOSの
+bundle identifierは英数字・ハイフン・ピリオドのみでアンダースコアを使えない。
+**この除去はエラーにも警告にもならない。**
 
 ```bash
-flutter create -t module --org jp.co.example-corp myapp_flutter
+flutter create -t module --org jp.co.example_corp myapp_flutter
 ```
 
 ```yaml
-androidPackage: jp.co.examplecorp.myapp_flutter      # ハイフンが消える
-iosBundleIdentifier: jp.co.example-corp.myappFlutter # ハイフンが残る
+androidPackage: jp.co.example_corp.myapp_flutter     # そのまま
+iosBundleIdentifier: jp.co.examplecorp.myappFlutter  # _ が消える
 ```
 
-両OSで別々の識別子になり、気づきにくい。**ハイフンを含まない形を明示的に渡す。**
+**対処**: どちらの区切り文字を渡しても、両OSとも規則を満たす識別子になる。
+**ホストアプリのAndroid側 `applicationId` と同じ表記を渡すのが分かりやすい。**
+`applicationId` との衝突を目視で確認することになるため、そちらに揃える。
+
+**確認**: 生成後に `pubspec.yaml` を見て、想定した値になっているか確かめる。
+
+```bash
+grep -A3 "^  module:" my_flutter_module/pubspec.yaml
+```
 
 #### 環境（本番 / Stg / Dev）ごとに分ける必要はない
 
