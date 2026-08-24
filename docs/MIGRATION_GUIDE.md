@@ -298,7 +298,7 @@ flowchart TB
 
 ## 2. Flutterモジュールを作る
 
-モジュール名は `MIGRATION_PLAN_TEMPLATE.md` 3.4節で決めたものを使う。
+`--org` とモジュール名は `MIGRATION_PLAN_TEMPLATE.md` 3.4節で決めたものを使う。
 
 ```bash
 flutter create -t module --org com.example my_flutter_module
