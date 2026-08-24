@@ -69,20 +69,29 @@ grep -A2 "platforms" my_flutter_module/build/ios/SwiftPackages/FlutterNativeInte
 **条件**: `source module` 方式では、ホストアプリをビルドする全員のマシンに
 Flutter SDKが必要になる。揃える対象はFlutterを書く人だけではない。
 
-**対処**: バージョンマネージャ（FVMなど）で固定し、設定ファイルをコミットする。
+**対処**: バージョンを書いたファイルをコミットし、そこを唯一の情報源にする。
+手段は環境によって選ぶ。
 
-```bash
-brew install fvm
-cd my_flutter_module && fvm use <version>   # .fvmrc ができる
+| 手段 | 一致の保たれ方 |
+|---|---|
+| バージョンマネージャ（FVM、mise など） | **自動**。設定ファイルをコミットし、以降はそのツール経由で実行する |
+| SDKを各自で入れる | **自動では保たれない。**検査で担保する |
+
+バージョンマネージャを導入できない環境もある。その場合はバージョンを書いた
+ファイルを置き、突き合わせるスクリプトを用意する。
+
+```sh
+EXPECTED=$(tr -d '[:space:]' < .flutter-version)
+ACTUAL=$(flutter --version | sed -n '1s/^Flutter \([^ ]*\).*/\1/p')
+[ "$EXPECTED" = "$ACTUAL" ] || { echo "不一致: $EXPECTED / $ACTUAL"; exit 1; }
 ```
 
-`.fvmrc` をコミットし、SDKの実体（`.fvm/`）は除外する。以降は `fvm flutter` で
-実行する。あわせて `pubspec.yaml` に下限を宣言しておくと、FVMを使っていない人が
-古いSDKで `pub get` した時点で止まる。
+いずれの場合も `pubspec.yaml` に範囲を宣言しておく。**ツールに依存せず効く唯一の
+強制力**で、範囲外のSDKは `pub get` の時点で止まる。
 
 ```yaml
 environment:
-  flutter: ">=<version>"
+  flutter: ">=<version> <<next-minor>"
 ```
 
 **確認**: ネイティブ側のビルドは**PATH上の `flutter` を見ていない。**

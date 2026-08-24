@@ -42,23 +42,22 @@
 
 ### 共通の準備
 
-**Flutter SDKは 3.47.1 に固定している。** バージョンは
-`legacyapp_flutter/.fvmrc` が唯一の情報源で、CIもここを読む。
+**Flutter SDKは 3.47.1 に固定している。** バージョンは `.flutter-version` が
+唯一の情報源で、CIもここを読む。
+
+バージョンマネージャは使っていないため、**一致は自動では保たれない。**
+手元のSDKを確認する。
 
 ```bash
-brew install fvm
-cd legacyapp_flutter && fvm install
+./tools/check-flutter-version.sh
 ```
 
-以降 `flutter` ではなく **`fvm flutter`** を使う。素の `flutter` で
-`pub get` すると、生成物に個人のSDKパスが書き戻る（ビルドは通るため気づかない）。
-
 **`source module` 方式のため、Androidホストアプリをビルドする人にもSDKが要る。**
-Dartを書かない場合も上記の準備が必要。
+Dartを書かない場合も同じバージョンが必要。
 
 ```bash
 cd legacyapp_flutter
-fvm flutter pub get
+flutter pub get
 ```
 
 `legacyapp_flutter/.android/` と `.ios/` が生成され、ホストアプリはそこを参照する。
@@ -68,7 +67,7 @@ fvm flutter pub get
 
 ```bash
 cd legacyapp_flutter
-fvm dart run pigeon --input pigeons/legacy_store.dart
+dart run pigeon --input pigeons/legacy_store.dart
 ```
 
 ### Android Studio
@@ -100,7 +99,7 @@ cd legacy_android
 
 ```bash
 cd legacyapp_flutter
-fvm flutter build swift-package --platform ios
+flutter build swift-package --platform ios
 ```
 
 そのうえで `LegacyApp.xcodeproj` を開く。**SPM方式では `.xcworkspace` は
@@ -129,12 +128,12 @@ xcodebuild -project LegacyApp.xcodeproj -scheme LegacyApp \
 
 ```bash
 cd legacyapp_flutter
-fvm flutter run -t lib/main_dev.dart -d <device-id>
+flutter run -t lib/main_dev.dart -d <device-id>
 ```
 
 ```bash
 cd legacyapp_flutter
-fvm flutter analyze && fvm flutter test
+flutter analyze && flutter test
 ```
 
 ## CI
@@ -157,8 +156,8 @@ YAMLアンカーで組んである。
 `ios:build` はXcodeが要るためmacOSのRunnerでしか動かない。Runnerが無い環境で
 パイプラインが滞留しないよう手動実行にしてある。
 
-**バージョンは `legacyapp_flutter/.fvmrc` から読む。**開発者側（FVM）とCIで
-情報源を1つにするため。`.fvmrc` を上げればCIも追従する。
+**バージョンは `.flutter-version` から読む。**開発者側とCIで情報源を1つに
+するため。上げればCIも追従する。
 
 SDKは公式アーカイブから入れている。ベースイメージが持つFlutterは配布されている
 最新が3.44.0で、`pubspec.yaml` の制約を満たさないため `pub get` が失敗する。
