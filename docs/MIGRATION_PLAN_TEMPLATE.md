@@ -129,14 +129,87 @@ CocoaPodsのレジストリは2026年12月2日に読み取り専用になる。
 理由:
 ```
 
-### 3.4 Flutterモジュール名
+### 3.4 Flutterモジュールの識別子
+
+モジュール生成時の2つの引数で決まる。**後から変えるとホストアプリ側の参照も
+全部直すことになる。**
+
+```bash
+flutter create -t module --org <org> <module_name>
+```
+
+生成される `pubspec.yaml` はこうなる。
+
+```yaml
+module:
+  androidPackage: <org>.<module_name>          # Android
+  iosBundleIdentifier: <org>.<moduleName>      # iOS（キャメルケースになる）
+```
+
+#### これはホストアプリのIDではない
+
+**ホストアプリのbundle identifier / applicationId とは別物。** モジュールは
+フレームワークとしてホストアプリに埋め込まれるため、ホストアプリのIDは変わらない。
+
+| 生成される値 | 何に使われるか |
+|---|---|
+| `androidPackage` | ホストアプリに追加されるGradleサブプロジェクトのパッケージ |
+| `iosBundleIdentifier` | **モジュール単体実行用のラッパーアプリ**のbundle id。ホストアプリには影響しない |
+
+**条件**: `androidPackage` がホストアプリの `applicationId` と一致しないこと。
+一致するとDexのマージで衝突する。**フレーバーでsuffixを付けている場合は、
+そのどれとも一致しないこと。**
+
+#### `<module_name>` に設定する値
+
+**Dartのパッケージ名の規則に従う。** 小文字とアンダースコアのみ（`[a-z0-9_]`）。
+違反すると生成時にエラーになる。
+
+```
+"sapp-flutter" is not a valid Dart package name. Try "sapp_flutter" instead.
+```
 
 **1アプリに1モジュールしか組み込めない。** 将来Flutter化するすべての画面の
 置き場になるため、最初にFlutter化する機能名を付けると2画面目で実態と合わなくなる。
-ホストアプリに紐づく名前にする（`myapp_flutter` など）。
+ホストアプリに紐づく名前にする。
 
 ```
-選択:
+myapp_flutter     ホストアプリ名 + _flutter
+```
+
+#### `<org>` に設定する値
+
+ホストアプリの識別子から**逆ドメインの部分**を取る。末尾のアプリ名部分は
+`<module_name>` が担うため含めない。
+
+**条件**: **ハイフンを含めない。** Androidのパッケージ名はJavaの識別子である
+必要があり、ハイフンを使えない。
+
+**確認**: エラーにはならず、**Androidだけ黙って除去される。**
+
+```bash
+flutter create -t module --org jp.co.example-corp myapp_flutter
+```
+
+```yaml
+androidPackage: jp.co.examplecorp.myapp_flutter      # ハイフンが消える
+iosBundleIdentifier: jp.co.example-corp.myappFlutter # ハイフンが残る
+```
+
+両OSで別々の識別子になり、気づきにくい。**ハイフンを含まない形を明示的に渡す。**
+
+#### 環境（本番 / Stg / Dev）ごとに分ける必要はない
+
+ホストアプリが環境ごとに識別子を分けていても、**モジュール側は1つでよい。**
+モジュールは1アプリに1つしか組み込めず、環境の違いはホストアプリ側が持つ。
+
+Flutter側で環境を知る必要がある場合は、識別子を分けるのではなく**ネイティブから
+渡す**（4節の役割分担。設定の所有者はネイティブ）。
+
+```
+--org:
+module_name:
+理由:
 ```
 
 ---

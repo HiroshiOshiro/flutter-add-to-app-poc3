@@ -91,10 +91,19 @@ Flutterコードの量ではなく**Flutterを触らない開発者の割合**�
 **代償**: 画面を開くたびに新しいエンジンが作られるため、**Dart側の状態は
 画面を開き直すと失われる**（5.1節）。
 
-### 3.4 Flutterモジュール名 — `legacyapp_flutter`
+### 3.4 Flutterモジュールの識別子 — `--org com.example` / `legacyapp_flutter`
+
+```yaml
+module:
+  androidPackage: com.example.legacyapp_flutter
+  iosBundleIdentifier: com.example.legacyappFlutter
+```
 
 **理由**: 1アプリに1モジュールしか組み込めず、将来Flutter化するすべての画面の
 置き場になる。ホストアプリ名（LegacyApp）に紐づけ、機能名を含めていない。
+
+`androidPackage` はホストアプリの `applicationId`（`com.example.legacyapp`）と
+異なる。一致するとDexのマージで衝突する。
 
 ---
 
