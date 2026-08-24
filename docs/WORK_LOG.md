@@ -856,3 +856,80 @@ ViewModel（6件）、画面（5件）、ApiClient（2件）。チャネルとHT
 | 8.1節 | **不足**: ネイティブのリソース（画像）は参照できない |
 | 8.2節 | **不足**: 文言も同様。未対応だとFlutter画面だけ言語が変わらない |
 | 8.3節 | **不足**: `FlutterActivity` にはActionBarが出ない |
+
+---
+
+## 補足: CI（GitLab）
+
+PR: [#12](https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/12) /
+[#13](https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/13) /
+[#23](https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/23) /
+[#29](https://github.com/HiroshiOshiro/flutter-add-to-app-poc3/pull/29)
+
+GitLab 11.3.4 で動く構文に限定して4ジョブを組んだ。gitlab.com の共有Runnerで
+**Android のビルドが通るまでに3回失敗している。**
+
+### つまずいた点1: ジョブが拾われない
+
+```
+This job is stuck because you don't have any active runners
+```
+
+`tags: [docker]` を付けていたため。**タグを指定するとそのタグを持つRunnerしか
+拾わない。** 共有Runnerは `docker` というタグを持たない。Linux側3ジョブから
+タグを外して解消した。
+
+### つまずいた点2: イメージのFlutterが古い
+
+`ghcr.io/cirruslabs/flutter` は配布されている最新が **3.44.0**（`stable` タグと
+同一ダイジェスト）で、`pubspec.yaml` の制約を満たさない。3.47系のタグは存在
+しない。
+
+イメージはAndroid SDK・JDK・ライセンス同意のために使い、**Flutter本体は公式
+アーカイブから入れる**形にした。
+
+### つまずいた点3: ディスクが足りない
+
+```
+Execution failed for task ':app:packageDebug'.
+> java.io.IOException: No space left on device
+```
+
+**Debug APK 1.4GB のうち 1.3GB がネイティブライブラリだった。**
+
+| ABI | サイズ |
+|---|---|
+| arm64-v8a | 614 MB |
+| x86_64 | 372 MB |
+| armeabi-v7a | 333 MB |
+
+これにDockerイメージ、Flutter SDK、NDK 28.2、CMake、Build-Tools 35 のダウンロード
+が重なり、`saas-linux-small` のディスクが尽きた。
+
+`-PtargetAbi` で絞れるようにし、CIは `x86_64` のみにした（**402MB**）。
+既定では絞らないため、開発者の手元の挙動は変わらない。
+
+### 結果
+
+```
+BUILD SUCCESSFUL in 4m 19s
+78 actionable tasks: 77 executed, 1 up-to-date
+```
+
+`.cache/pub` と `.cache/gradle` のキャッシュも保存された。
+
+### 残っている点
+
+- **`:flutter:buildCMakeDebug` は4ABI分すべて実行される。** `-PtargetAbi` が効くのは
+  パッケージングであって、Flutterモジュール側のネイティブビルドではない。
+  ディスクは足りるようになったが、ビルド時間は縮んでいない
+- **Gradle 8.14.3 / AGP 8.11.1 の非推奨警告が出る。** Flutterが Gradle 9.1.0 /
+  AGP 9.0.1 以上を要求する日が近い。0.2節のバージョン要件は上がる
+- `Applying the Kotlin Android Plugin (KGP) was unsuccessful` はホストアプリが
+  Javaのみのため無害
+
+### ガイドへのフィードバック
+
+**3.4節の「（任意）」を外した。** アプリサイズを削るための任意項目として書いて
+いたが、**ディスクが限られた環境では必須**だった。症状とAPKの内訳を調べる
+コマンドも追加した。
