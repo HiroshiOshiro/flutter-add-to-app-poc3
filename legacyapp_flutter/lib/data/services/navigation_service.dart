@@ -1,4 +1,5 @@
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Flutterの領域**から出る**ときにネイティブへ依頼するService。
 ///
@@ -25,3 +26,9 @@ class NavigationService {
     );
   }
 }
+
+/// 差し替えできるようにProvider越しに配る。モジュール単体で動かすときや
+/// テストでは `overrides` でfakeに置き換える。
+final navigationServiceProvider = Provider<NavigationService>(
+  (Ref ref) => const NavigationService(),
+);

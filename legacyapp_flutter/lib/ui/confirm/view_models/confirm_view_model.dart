@@ -1,92 +1,52 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../data/repositories/confirm_repository.dart';
 import '../../../domain/models/form_data.dart';
 
-/// 確認画面の状態。
-enum ConfirmStatus {
-  /// 入力内容を取得している。
-  loading,
-
-  /// 表示できる。
-  ready,
-
-  /// 取得に失敗した。
-  loadFailed,
-}
-
-/// 確認画面のViewModel。
+/// 確認画面が表示する入力内容。
 ///
-/// Viewが持つのは表示と入力だけで、状態と手続きはここに置く。Widgetを
-/// 差し替えてもロジックが影響を受けないようにするため。
+/// 読み込み中・失敗・完了の3状態は [AsyncValue] が持つため、状態を表す enum を
+/// 自前で用意しない。
 ///
-/// 画面遷移はここでは行わない。遷移はViewの責務とし、ViewModelは
-/// **送信が成功したかどうか**だけを返す。
-class ConfirmViewModel extends ChangeNotifier {
-  ConfirmViewModel(this._repository);
+/// **このProviderの寿命はFlutterエンジンの寿命と同じ。** ネイティブから
+/// Flutter画面を開き直すと新しいエンジンが作られ、ここも作り直される
+/// （手順5.1節）。画面をまたいで持ち越したい状態はここに置かない。
+final FutureProvider<FormDataModel> formDataProvider =
+    FutureProvider<FormDataModel>((Ref ref) {
+  return ref.watch(confirmRepositoryProvider).load();
+});
 
-  final ConfirmRepository _repository;
-
-  ConfirmStatus _status = ConfirmStatus.loading;
-  ConfirmStatus get status => _status;
-
-  FormDataModel? _formData;
-  FormDataModel? get formData => _formData;
-
-  bool _isSubmitting = false;
-  bool get isSubmitting => _isSubmitting;
-
-  /// 送信に失敗した直後だけtrue。Viewが通知を出したら [clearSubmitFailure] で戻す。
-  bool _submitFailed = false;
-  bool get submitFailed => _submitFailed;
-
-  /// 入力内容を取得する。
-  Future<void> load() async {
-    _status = ConfirmStatus.loading;
-    notifyListeners();
-    try {
-      _formData = await _repository.load();
-      _status = ConfirmStatus.ready;
-    } catch (error, stackTrace) {
-      // ネイティブ側のチャネルハンドラが無い／メソッド名がずれている場合に
-      // ここへ来る。握り潰すと白画面になるため状態として持つ。
-      debugPrint('ConfirmViewModel.load failed: $error\n$stackTrace');
-      _status = ConfirmStatus.loadFailed;
-    }
-    notifyListeners();
-  }
+/// 送信の実行と、その最中かどうか。
+///
+/// 状態として持つのは「送信中か」だけ。成否は [submit] の戻り値で返し、
+/// 通知の表示と画面遷移はView側が決める。
+class SubmitController extends Notifier<bool> {
+  @override
+  bool build() => false;
 
   /// 入力内容を送信する。成功したらtrue。
   ///
   /// 二重送信を防ぐため、実行中の呼び出しは無視する。
   Future<bool> submit() async {
-    final FormDataModel? data = _formData;
-    if (_isSubmitting || data == null) {
+    final FormDataModel? data = ref.read(formDataProvider).value;
+    if (state || data == null) {
       return false;
     }
-    _isSubmitting = true;
-    _submitFailed = false;
-    notifyListeners();
+    state = true;
 
     bool success;
     try {
-      success = await _repository.submit(data);
+      success = await ref.read(confirmRepositoryProvider).submit(data);
     } catch (error, stackTrace) {
-      debugPrint('ConfirmViewModel.submit failed: $error\n$stackTrace');
+      debugPrint('submit failed: $error\n$stackTrace');
       success = false;
     }
 
-    _isSubmitting = false;
-    _submitFailed = !success;
-    notifyListeners();
+    state = false;
     return success;
   }
-
-  void clearSubmitFailure() {
-    if (!_submitFailed) {
-      return;
-    }
-    _submitFailed = false;
-    notifyListeners();
-  }
 }
+
+final NotifierProvider<SubmitController, bool> submitControllerProvider =
+    NotifierProvider<SubmitController, bool>(SubmitController.new);

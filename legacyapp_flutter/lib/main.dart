@@ -1,6 +1,7 @@
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'routing/router.dart';
 import 'ui/core/l10n/generated/app_localizations.dart';
@@ -14,9 +15,13 @@ import 'ui/core/themes/app_theme.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(
-    MainApp(
-      initialRoute: PlatformDispatcher.instance.defaultRouteName,
-      router: AppRouter(registeredScreens()),
+    // Providerの寿命はこのエンジンの寿命と同じ。ネイティブから開き直すと
+    // 新しいエンジンでmain()が走り、ここも作り直される（手順5.1節）。
+    ProviderScope(
+      child: MainApp(
+        initialRoute: PlatformDispatcher.instance.defaultRouteName,
+        router: AppRouter(registeredScreens()),
+      ),
     ),
   );
 }

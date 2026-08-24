@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../data/repositories/confirm_repository.dart';
 import '../../../data/services/navigation_service.dart';
 import '../../../domain/models/form_data.dart';
 import '../../core/l10n/generated/app_localizations.dart';
@@ -11,83 +11,53 @@ import '../view_models/confirm_view_model.dart';
 /// 移行前は `ConfirmActivity` / `ConfirmViewController` が担当していた画面。
 /// 表示内容と操作は同じで、実装だけがFlutterへ移っている。
 ///
-/// 依存は外から差し込める。ネイティブに組み込まずモジュール単体で動かすときは
-/// [FakeConfirmRepository] を渡す（`lib/main_dev.dart`）。
-class ConfirmScreen extends StatefulWidget {
-  ConfirmScreen({
-    super.key,
-    ConfirmRepository? repository,
-    this.navigation = const NavigationService(),
-  }) : repository = repository ?? DefaultConfirmRepository();
+/// 依存はすべてProvider越しに受け取る。ネイティブに組み込まず単体で動かすときは
+/// `overrides` でfakeに差し替える（`lib/main_dev.dart`）。
+class ConfirmScreen extends ConsumerWidget {
+  const ConfirmScreen({super.key});
 
-  final ConfirmRepository repository;
-
-  /// まだFlutter化されていない完了画面へ抜けるために使う。完了画面も
-  /// Flutter化した時点で、この依存は `Navigator` の呼び出しに置き換わる。
-  final NavigationService navigation;
-
-  @override
-  State<ConfirmScreen> createState() => _ConfirmScreenState();
-}
-
-class _ConfirmScreenState extends State<ConfirmScreen> {
-  late final ConfirmViewModel _viewModel = ConfirmViewModel(widget.repository);
-
-  @override
-  void initState() {
-    super.initState();
-    _viewModel.load();
-  }
-
-  @override
-  void dispose() {
-    _viewModel.dispose();
-    super.dispose();
-  }
-
-  Future<void> _onConfirm() async {
-    final bool success = await _viewModel.submit();
-    if (!mounted) {
+  Future<void> _onConfirm(BuildContext context, WidgetRef ref) async {
+    final bool success = await ref.read(submitControllerProvider.notifier).submit();
+    if (!context.mounted) {
       return;
     }
     if (success) {
-      await widget.navigation.openNative('complete');
+      // 完了画面はまだネイティブのため、Flutterの領域から出る依頼をする。
+      await ref.read(navigationServiceProvider).openNative('complete');
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.submitFailed)),
       );
-      _viewModel.clearSubmitFailure();
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final AsyncValue<FormDataModel> formData = ref.watch(formDataProvider);
+
     return Scaffold(
       // AppBarは置かない。ネイティブ側のコンテナ（ActionBar / NavigationBar）が
-      // 既にタイトルと戻るを持っているため、置くと二重になる（ガイド5.3節）。
+      // 既にタイトルと戻るを持っているため、置くと二重になる（手順8.3節）。
       body: SafeArea(
-        child: ListenableBuilder(
-          listenable: _viewModel,
-          builder: (BuildContext context, _) => _body(context),
+        child: formData.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (Object error, StackTrace stackTrace) {
+            // ネイティブ側のチャネルハンドラが無い／メソッド名がずれている場合に
+            // ここへ来る。握り潰すと白画面になるため明示する。
+            debugPrint('formData failed: $error\n$stackTrace');
+            return Center(child: Text(AppLocalizations.of(context)!.loadFailed));
+          },
+          data: (FormDataModel data) => _content(context, ref, data),
         ),
       ),
     );
   }
 
-  Widget _body(BuildContext context) {
-    switch (_viewModel.status) {
-      case ConfirmStatus.loading:
-        return const Center(child: CircularProgressIndicator());
-      case ConfirmStatus.loadFailed:
-        return Center(child: Text(AppLocalizations.of(context)!.loadFailed));
-      case ConfirmStatus.ready:
-        return _content(context, _viewModel.formData!);
-    }
-  }
-
-  Widget _content(BuildContext context, FormDataModel data) {
+  Widget _content(BuildContext context, WidgetRef ref, FormDataModel data) {
     final TextTheme textTheme = Theme.of(context).textTheme;
     final AppLocalizations l10n = AppLocalizations.of(context)!;
+    final bool isSubmitting = ref.watch(submitControllerProvider);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -120,8 +90,8 @@ class _ConfirmScreenState extends State<ConfirmScreen> {
           const SizedBox(height: 24),
           FilledButton(
             // 送信中は押せなくする（移行前のネイティブ実装と同じ）。
-            onPressed: _viewModel.isSubmitting ? null : _onConfirm,
-            child: _viewModel.isSubmitting
+            onPressed: isSubmitting ? null : () => _onConfirm(context, ref),
+            child: isSubmitting
                 ? const SizedBox(
                     width: 20,
                     height: 20,
