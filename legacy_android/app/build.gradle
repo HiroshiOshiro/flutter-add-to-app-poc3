@@ -10,6 +10,19 @@ android {
         targetSdk 35
         versionCode 1
         versionName "1.0"
+
+        // ABIを絞る（手順3.4節）。既定では絞らない。
+        //
+        // **DebugのFlutterライブラリはABIごとに300〜600MBある。** 全ABIだと
+        // APKが1.4GBを超え、ディスクの限られたCIでは `No space left on device`
+        // でパッケージングに失敗する。
+        //
+        //   ./gradlew assembleDebug -PtargetAbi=x86_64
+        if (project.hasProperty('targetAbi')) {
+            ndk {
+                abiFilters project.property('targetAbi')
+            }
+        }
     }
 
     compileOptions {

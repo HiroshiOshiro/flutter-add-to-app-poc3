@@ -428,7 +428,7 @@ buildTypes {
 }
 ```
 
-### 3.4 ABIを絞る（任意）
+### 3.4 ABIを絞る
 
 Flutterは x86_64 / armeabi-v7a / arm64-v8a のみ対応する。未設定でもビルド・
 実行はできる。ホストアプリがこれ以外のABIをサポートしている場合、そのABI向けの
@@ -440,6 +440,34 @@ android {
         ndk { abiFilters "armeabi-v7a", "arm64-v8a", "x86_64" }
     }
 }
+```
+
+**条件**: **DebugビルドのFlutterライブラリはABIごとに数百MBある。** 全ABIを
+含めるとAPKが1GBを超え、ディスクの限られた環境ではパッケージングに失敗する。
+
+```
+Execution failed for task ':app:packageDebug'.
+> java.io.IOException: No space left on device
+```
+
+**確認**: APKの内訳を見る。
+
+```bash
+unzip -l app/build/outputs/apk/debug/app-debug.apk \
+  | grep "lib/" | awk -F/ '{a[$2]+=$1} END {for (k in a) printf "%-14s %.0f MB\n", k, a[k]/1048576}'
+```
+
+**対処**: CIなど実機で動かさない環境ではABIを1つに絞る。プロパティで切り替え
+られるようにしておくと、開発者の手元は絞らずに済む。
+
+```groovy
+if (project.hasProperty('targetAbi')) {
+    ndk { abiFilters project.property('targetAbi') }
+}
+```
+
+```bash
+./gradlew assembleDebug -PtargetAbi=x86_64
 ```
 
 ### 3.5 確認

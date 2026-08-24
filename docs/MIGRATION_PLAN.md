@@ -274,9 +274,9 @@ Flutterへ移るたびに減る。
 
 | 項目 | 実測・決定 |
 |---|---|
-| アプリサイズ | **Debug APK が約1.4GB**。上書きインストールが `INSTALL_FAILED_INSUFFICIENT_STORAGE` で失敗するため、`adb uninstall` してから入れる。**Releaseは未測定**（9節） |
+| アプリサイズ | **Debug APK が約1.4GB**。うち1.3GBがネイティブライブラリで、arm64-v8a 614MB / x86_64 372MB / armeabi-v7a 333MB の内訳。上書きインストールが `INSTALL_FAILED_INSUFFICIENT_STORAGE` で失敗するため、`adb uninstall` してから入れる。**CIではABIを1つに絞り402MBにしている**（手順3.4節）。**Releaseは未測定**（9節） |
 | ビルド時間 | **未測定**（9節） |
-| CI/CD | GitLab CI を追加。解析・テスト・Android / iOS ビルドの4ジョブ。`source module` のため、Androidのジョブにも Flutter SDK と `.android/include_flutter.groovy` の生成が要る |
+| CI/CD | GitLab CI を追加。解析・テスト・Android / iOS ビルドの4ジョブ。`source module` のため、Androidのジョブにも Flutter SDK と `.android/include_flutter.groovy` の生成が要る。**共有Runnerのディスクが足りず、ABIを1つに絞る必要があった** |
 | デバッグ環境 | iOSは `flutter attach` の自動探索が働かず、`--debug-url` を渡す。ローカルネットワーク権限も追加済み。手順は `DEBUGGING.md` |
 | Flutter SDKのバージョン | **3.47.1 に固定。** 情報源は `.flutter-version`、CIもここを読む。バージョンマネージャは使えないため、`tools/check-flutter-version.sh` と `pubspec.yaml` の範囲指定で担保する |
 | チームのスキル | **未決定**（9節） |
