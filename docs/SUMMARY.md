@@ -125,7 +125,8 @@ Todoフローは **入力 → 確認 → 完了** の3画面。このうち確�
 | ファイル | 内容 |
 |---|---|
 | `docs/MIGRATION_GUIDE.md` | 移行の手順。条件と確認方法だけを書き、経過は書かない。今回の検証結果を反映して9節構成になった |
-| `docs/MIGRATION_PLAN_TEMPLATE.md` | 移行の計画の雛形。アーキテクチャと役割分担を、着手前に決めるためのもの |
+| `docs/MIGRATION_PLAN.md` | 今回の移行計画。決めたことと、決めなかったこと |
+| `docs/MIGRATION_PLAN_TEMPLATE.md` | その雛形 |
 | `docs/WORK_LOG.md` | 節ごとの作業記録。判断の理由、つまずいた内容、手順書への差し戻し、PRリンク |
 | `docs/DEBUGGING.md` | 日常的に参照するデバッグ手順。手順書から分離した |
 | `.gitlab-ci.yml` | 解析・テスト・Android / iOSビルドの4ジョブ。GitLab 11.3.4 で動く構文に限定 |
