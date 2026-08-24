@@ -55,14 +55,14 @@ variables:
 # （!reference は13.x、extends は11.3で追加されたばかりのため使わない）
 .flutter_install: &flutter_install |
   set -e
-  # バージョンの唯一の情報源は .fvmrc（開発者はFVMが同じ値を使う）。
+  # バージョンの唯一の情報源は .flutter-version。
   # 11.3では variables: に動的な値を書けないため、ここで解決する。
-  FLUTTER_VERSION=$(sed -n 's/.*"flutter"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' legacyapp_flutter/.fvmrc)
+  FLUTTER_VERSION=$(tr -d '[:space:]' < .flutter-version)
   if [ -z "$FLUTTER_VERSION" ]; then
-    echo "error: legacyapp_flutter/.fvmrc からバージョンを読めなかった"
+    echo "error: .flutter-version からバージョンを読めなかった"
     exit 1
   fi
-  echo "Flutter ${FLUTTER_VERSION} (.fvmrc)"
+  echo "Flutter ${FLUTTER_VERSION} (.flutter-version)"
   FLUTTER_SDK="/opt/flutter-${FLUTTER_VERSION}"
   if [ ! -x "$FLUTTER_SDK/bin/flutter" ]; then
     mkdir -p "$FLUTTER_SDK"
