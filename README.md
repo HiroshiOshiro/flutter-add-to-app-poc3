@@ -31,7 +31,7 @@
 - `legacy_android/` — 移行前のAndroidアプリ（Java）
 - `legacy_ios/` — 移行前のiOSアプリ（Objective-C）
 - `docs/SUMMARY.md` — 作業概要
-- `docs/MIGRATION_PLAN.md` — 移行の計画（アーキテクチャ・役割分担）の雛形
+- `docs/MIGRATION_PLAN_TEMPLATE.md` — 移行の計画（アーキテクチャ・役割分担）の雛形
 - `docs/MIGRATION_GUIDE.md` — 移行の手順
 - `legacyapp_flutter/` — Flutterモジュール
 - `docs/DEBUGGING.md` — Flutter側のデバッグ手順
@@ -62,6 +62,14 @@ fvm flutter pub get
 ```
 
 `legacyapp_flutter/.android/` と `.ios/` が生成され、ホストアプリはそこを参照する。
+
+`legacy_store` チャネルは Pigeon で生成している。定義（`pigeons/legacy_store.dart`）を
+変更したら再生成する。生成物はコミット済みのため、変更しない限り実行は不要。
+
+```bash
+cd legacyapp_flutter
+fvm dart run pigeon --input pigeons/legacy_store.dart
+```
 
 ### Android Studio
 

@@ -11,6 +11,7 @@
 		1074F902A70CF63F7147099E /* FlutterHost.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3306B788FB338D283C233E55 /* FlutterHost.swift */; };
 		108C755D7DC8BB570ACEDBD6 /* BaseViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 3CD02FF016638479FABF72A4 /* BaseViewController.m */; };
 		15E0EF2CFB7772262A5A2CC3 /* FlutterNativeIntegration in Frameworks */ = {isa = PBXBuildFile; productRef = B6003D62DCACF48C9037D1CF /* FlutterNativeIntegration */; };
+		16C3130C1A6C33C45D42F11C /* LegacyStorePigeon.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D43378B64EBAEA68B6A3FEC /* LegacyStorePigeon.swift */; };
 		249EFC3735BB1FD618F4D9E3 /* ConfirmViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 7BC58799B13AE5139571F7DB /* ConfirmViewController.m */; };
 		3348C475BB51B843F1070287 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8F80F83393C68709E87143A2 /* Assets.xcassets */; };
 		3B43E73240E57BC4A503FA4B /* MusicViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34E440BA2146EDDB8F57CE43 /* MusicViewController.m */; };
@@ -56,6 +57,7 @@
 		83D512E47E347C6E8601F4B4 /* FormData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FormData.h; sourceTree = "<group>"; };
 		84B410C7F946AC366EB7D0BD /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Localizable.strings; sourceTree = "<group>"; };
 		8B92C46A95C4373FE8FAC083 /* TrackTableViewCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TrackTableViewCell.h; sourceTree = "<group>"; };
+		8D43378B64EBAEA68B6A3FEC /* LegacyStorePigeon.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegacyStorePigeon.swift; sourceTree = "<group>"; };
 		8F80F83393C68709E87143A2 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A318F6D5545667050491A296 /* ArtworkLoader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ArtworkLoader.h; sourceTree = "<group>"; };
 		A3E9D5301E589408797E65C5 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
@@ -114,6 +116,7 @@
 				F173B41FDF18376D8B24F0C3 /* ItunesTrack.h */,
 				C9D7C187CFD933BFA4DF71E0 /* ItunesTrack.m */,
 				0B2FD3FDC79166761A2FAAB2 /* LegacyApp-Bridging-Header.h */,
+				8D43378B64EBAEA68B6A3FEC /* LegacyStorePigeon.swift */,
 				47DACC6ADE13256ED65D8FD4 /* main.m */,
 				E7A2FEBFBEEB2A64BD26C82D /* MusicViewController.h */,
 				34E440BA2146EDDB8F57CE43 /* MusicViewController.m */,
@@ -285,6 +288,7 @@
 				59B784FDBD0B5514721D9EF9 /* FormData.m in Sources */,
 				425F59F025702BDEEB667273 /* InputViewController.m in Sources */,
 				DB675B883D9FD91CA1F162BA /* ItunesTrack.m in Sources */,
+				16C3130C1A6C33C45D42F11C /* LegacyStorePigeon.swift in Sources */,
 				3B43E73240E57BC4A503FA4B /* MusicViewController.m in Sources */,
 				594FE13879C612C5FBE43B0F /* NativeRouter.swift in Sources */,
 				DB4F5042976E3091E77E28E4 /* NativeServices.swift in Sources */,

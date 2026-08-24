@@ -8,7 +8,6 @@ import UIKit
 /// たびに減っていく。
 enum NativeServices {
 
-    private static let channelLegacyStore = "com.example.legacyapp/legacy_store"
     private static let channelNavigation = "com.example.legacyapp/navigation"
 
     static func attach(to engine: FlutterEngine, host: UIViewController) {
@@ -20,24 +19,15 @@ enum NativeServices {
     ///
     /// このデータの所有者はネイティブのままで、Flutterからは読むだけ。
     /// 項目ごとにメソッドを分けず、まとめて返す。
+    ///
+    /// チャネル名とメソッド名は生成コード（`LegacyStorePigeon.swift`）が持つ。
+    /// Dart側の定義と食い違えばコンパイルエラーになるため、ここで文字列を
+    /// 書かない。
     private static func attachLegacyStore(engine: FlutterEngine) {
-        let channel = FlutterMethodChannel(
-            name: channelLegacyStore,
-            binaryMessenger: engine.binaryMessenger
+        LegacyStoreApiSetup.setUp(
+            binaryMessenger: engine.binaryMessenger,
+            api: LegacyStoreHandler()
         )
-        channel.setMethodCallHandler { call, result in
-            switch call.method {
-            case "readFormData":
-                let data = BaseViewController.sharedFormData
-                result([
-                    "name": data.name,
-                    "email": data.email,
-                    "message": data.message,
-                ])
-            default:
-                result(FlutterMethodNotImplemented)
-            }
-        }
     }
 
     /// Flutterの領域から出る遷移をネイティブが引き受ける。
@@ -80,5 +70,17 @@ enum NativeServices {
                 result(FlutterMethodNotImplemented)
             }
         }
+    }
+}
+
+/// `LegacyStoreApi` の実装。
+private struct LegacyStoreHandler: LegacyStoreApi {
+    func readFormData() throws -> FormDataDto {
+        let data = BaseViewController.sharedFormData
+        return FormDataDto(
+            name: data.name,
+            email: data.email,
+            message: data.message
+        )
     }
 }

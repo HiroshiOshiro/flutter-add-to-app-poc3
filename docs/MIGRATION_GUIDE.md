@@ -10,7 +10,7 @@
 | 資料 | 内容 |
 |---|---|
 | `MIGRATION_GUIDE.md` | **移行の手順**。条件・手順・確認方法。プロジェクトに依存しない |
-| `MIGRATION_PLAN.md` | **移行の計画**。アーキテクチャ・役割分担など、移行前に決めること。画面ごとに1部 |
+| `MIGRATION_PLAN_TEMPLATE.md` | **移行の計画**。アーキテクチャ・役割分担など、移行前に決めること。画面ごとに1部 |
 
 **この資料には手順だけを書く。** 何を選んだかは計画側に残す。
 
@@ -184,7 +184,7 @@ MyiOSApp/
 
 ### 0.5 作業の進め方
 
-着手前に決めることは `MIGRATION_PLAN.md` に埋める。
+着手前に決めることは `MIGRATION_PLAN_TEMPLATE.md` に埋める。
 
 **組み込みを先に終わらせ、画面の作り込みは最後に行う。**
 
@@ -283,13 +283,13 @@ flowchart TB
 各ステップの終わりでビルドと動作確認を行う。片方のOSだけ先に進めてもよい。
 
 組み込み方式やエンジンの持ち方など、**途中で選ぶことは着手前に決めておく**
-（`MIGRATION_PLAN.md` 3節）。
+（`MIGRATION_PLAN_TEMPLATE.md` 3節）。
 
 ---
 
 ## 2. Flutterモジュールを作る
 
-モジュール名は `MIGRATION_PLAN.md` 3.4節で決めたものを使う。
+モジュール名は `MIGRATION_PLAN_TEMPLATE.md` 3.4節で決めたものを使う。
 
 ```bash
 flutter create -t module --org com.example my_flutter_module
@@ -367,7 +367,7 @@ dependencyResolutionManagement {
 
 ### 3.2 組み込み方式
 
-`MIGRATION_PLAN.md` 3.1節で決めた方式の手順だけを実施する。
+`MIGRATION_PLAN_TEMPLATE.md` 3.1節で決めた方式の手順だけを実施する。
 `-A` `-B` は排他的な選択肢を表す。
 
 ### 3.3-A source module 方式
@@ -446,7 +446,7 @@ cd MyAndroidApp
 
 ### 4.1 組み込み方式
 
-`MIGRATION_PLAN.md` 3.2節で決めた方式の手順だけを実施する。
+`MIGRATION_PLAN_TEMPLATE.md` 3.2節で決めた方式の手順だけを実施する。
 `-A` `-B` `-C` は排他的な選択肢を表す。
 
 ### 4.2-A Swift Package Manager 方式
@@ -655,7 +655,7 @@ xcodebuild -workspace MyApp.xcworkspace -scheme MyApp \
 
 ### 5.1 エンジンの持ち方
 
-`MIGRATION_PLAN.md` 3.3節で決める。以下は `FlutterEngineGroup` を選んだ場合。
+`MIGRATION_PLAN_TEMPLATE.md` 3.3節で決める。以下は `FlutterEngineGroup` を選んだ場合。
 
 グループから生成したエンジンは以下を共有する。
 
@@ -937,6 +937,49 @@ class MyFlutterActivity : FlutterActivity() {
 
 ハンドラが画面遷移などでActivityを必要とするため、エンジン生成時ではなく
 ここで登録する。iOSも同様に `FlutterViewController` のサブクラスで登録する。
+
+### 6.5 Pigeonでチャネルを生成する（任意）
+
+手書きのチャネルは、**チャネル名・メソッド名・引数の型のいずれかが食い違うと
+無言で失敗する**（7.3節）。[Pigeon](https://pub.dev/packages/pigeon) はDartの
+定義からDart / Java / Kotlin / Swift / Objective-Cのコードを生成するため、
+食い違いがコンパイルエラーになる。
+
+**条件**: 生成先をモジュールの `.android/` `.ios/` にしない。あれは
+`flutter pub get` のたびに再生成される足場のため、生成コードが消える。
+ホストアプリのソースツリーへ出す。
+
+```dart
+@ConfigurePigeon(
+  PigeonOptions(
+    dartOut: 'lib/data/services/generated/legacy_store.g.dart',
+    javaOut: '../MyAndroidApp/app/src/main/java/com/example/myapp/flutter/LegacyStorePigeon.java',
+    javaOptions: JavaOptions(package: 'com.example.myapp.flutter'),
+    swiftOut: '../MyiOSApp/MyApp/Sources/LegacyStorePigeon.swift',
+  ),
+)
+```
+
+**生成物はコミットする。** ネイティブ側のビルドが参照するため、CIで再生成
+しない構成なら必須。
+
+**確認**: 生成後、ネイティブ側は生成インターフェースを実装する形になり、
+チャネル名の文字列がハンドラから消える。
+
+```java
+LegacyStorePigeon.LegacyStoreApi.setUp(
+        engine.getDartExecutor().getBinaryMessenger(),
+        () -> new LegacyStorePigeon.FormDataDto.Builder()...build());
+```
+
+**防げないもの**: 登録の順序（5.2節）。`setUp()` をいつ呼ぶかは自分で決めるため、
+Dartの実行より後に登録すれば手書きのときと同じように失敗する。Pigeonが解決
+するのは**名前と型の一致**だけ。
+
+Dart側は生成クラスをそのまま使わず、薄いServiceで包むとよい。移行完了時に
+消えるのはチャネルであってRepositoryではないため、生成された型が上層へ漏れない。
+
+---
 
 ---
 

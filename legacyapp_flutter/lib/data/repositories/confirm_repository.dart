@@ -22,7 +22,7 @@ class DefaultConfirmRepository implements ConfirmRepository {
   DefaultConfirmRepository({
     LegacyStoreService? legacyStore,
     ApiClient? apiClient,
-  })  : _legacyStore = legacyStore ?? const LegacyStoreService(),
+  })  : _legacyStore = legacyStore ?? LegacyStoreService(),
         _apiClient = apiClient ?? ApiClient();
 
   static final Uri _submitUri =

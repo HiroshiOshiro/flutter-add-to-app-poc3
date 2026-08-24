@@ -15,12 +15,12 @@ import '../../domain/models/form_data.dart';
 ///   2. チャネル越しに値が渡ること（取得結果をそのまま表示）
 ///   3. ネイティブ画面へ抜けられること（ボタン）
 class PlaceholderScreen extends StatefulWidget {
-  const PlaceholderScreen({
+  PlaceholderScreen({
     super.key,
     required this.routeName,
-    this.legacyStore = const LegacyStoreService(),
+    LegacyStoreService? legacyStore,
     this.navigation = const NavigationService(),
-  });
+  }) : legacyStore = legacyStore ?? LegacyStoreService();
 
   final String routeName;
   final LegacyStoreService legacyStore;
