@@ -10,7 +10,7 @@
 | 資料 | 内容 |
 |---|---|
 | `MIGRATION_GUIDE.md` | **移行の手順**。条件・手順・確認方法。プロジェクトに依存しない |
-| `MIGRATION_PLAN.md` | **移行の計画**。アーキテクチャ・役割分担など、移行前に決めること。画面ごとに1部 |
+| `MIGRATION_PLAN_TEMPLATE.md` | **移行の計画**。アーキテクチャ・役割分担など、移行前に決めること。画面ごとに1部 |
 
 **この資料には手順だけを書く。** 何を選んだかは計画側に残す。
 
@@ -184,7 +184,7 @@ MyiOSApp/
 
 ### 0.5 作業の進め方
 
-着手前に決めることは `MIGRATION_PLAN.md` に埋める。
+着手前に決めることは `MIGRATION_PLAN_TEMPLATE.md` に埋める。
 
 **組み込みを先に終わらせ、画面の作り込みは最後に行う。**
 
@@ -283,13 +283,13 @@ flowchart TB
 各ステップの終わりでビルドと動作確認を行う。片方のOSだけ先に進めてもよい。
 
 組み込み方式やエンジンの持ち方など、**途中で選ぶことは着手前に決めておく**
-（`MIGRATION_PLAN.md` 3節）。
+（`MIGRATION_PLAN_TEMPLATE.md` 3節）。
 
 ---
 
 ## 2. Flutterモジュールを作る
 
-モジュール名は `MIGRATION_PLAN.md` 3.4節で決めたものを使う。
+モジュール名は `MIGRATION_PLAN_TEMPLATE.md` 3.4節で決めたものを使う。
 
 ```bash
 flutter create -t module --org com.example my_flutter_module
@@ -367,7 +367,7 @@ dependencyResolutionManagement {
 
 ### 3.2 組み込み方式
 
-`MIGRATION_PLAN.md` 3.1節で決めた方式の手順だけを実施する。
+`MIGRATION_PLAN_TEMPLATE.md` 3.1節で決めた方式の手順だけを実施する。
 `-A` `-B` は排他的な選択肢を表す。
 
 ### 3.3-A source module 方式
@@ -446,7 +446,7 @@ cd MyAndroidApp
 
 ### 4.1 組み込み方式
 
-`MIGRATION_PLAN.md` 3.2節で決めた方式の手順だけを実施する。
+`MIGRATION_PLAN_TEMPLATE.md` 3.2節で決めた方式の手順だけを実施する。
 `-A` `-B` `-C` は排他的な選択肢を表す。
 
 ### 4.2-A Swift Package Manager 方式
@@ -655,7 +655,7 @@ xcodebuild -workspace MyApp.xcworkspace -scheme MyApp \
 
 ### 5.1 エンジンの持ち方
 
-`MIGRATION_PLAN.md` 3.3節で決める。以下は `FlutterEngineGroup` を選んだ場合。
+`MIGRATION_PLAN_TEMPLATE.md` 3.3節で決める。以下は `FlutterEngineGroup` を選んだ場合。
 
 グループから生成したエンジンは以下を共有する。
 
