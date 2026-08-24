@@ -159,6 +159,10 @@ YAMLアンカーで組んである。
 `ios:build` はXcodeが要るためmacOSのRunnerでしか動かない。Runnerが無い環境で
 パイプラインが滞留しないよう手動実行にしてある。
 
+Linux側の3ジョブは gitlab.com の共有Runnerで動作を確認済み（`BUILD SUCCESSFUL`）。
+**Androidのジョブは `-PtargetAbi=x86_64` でABIを1つに絞っている。** 絞らないと
+APKが1.4GBになり、共有Runnerのディスクが尽きる。
+
 **バージョンは `.flutter-version` から読む。**開発者側とCIで情報源を1つに
 するため。上げればCIも追従する。
 
