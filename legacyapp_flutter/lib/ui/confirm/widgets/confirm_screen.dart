@@ -17,7 +17,9 @@ class ConfirmScreen extends ConsumerWidget {
   const ConfirmScreen({super.key});
 
   Future<void> _onConfirm(BuildContext context, WidgetRef ref) async {
-    final bool success = await ref.read(submitControllerProvider.notifier).submit();
+    final bool success = await ref
+        .read(submitControllerProvider.notifier)
+        .submit();
     if (!context.mounted) {
       return;
     }
@@ -45,7 +47,9 @@ class ConfirmScreen extends ConsumerWidget {
             // ネイティブ側のチャネルハンドラが無い／メソッド名がずれている場合に
             // ここへ来る。握り潰すと白画面になるため明示する。
             debugPrint('formData failed: $error\n$stackTrace');
-            return Center(child: Text(AppLocalizations.of(context)!.loadFailed));
+            return Center(
+              child: Text(AppLocalizations.of(context)!.loadFailed),
+            );
           },
           data: (FormDataModel data) => _content(context, ref, data),
         ),

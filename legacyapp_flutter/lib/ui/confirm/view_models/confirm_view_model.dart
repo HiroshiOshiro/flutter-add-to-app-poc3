@@ -14,8 +14,8 @@ import '../../../domain/models/form_data.dart';
 /// （手順5.1節）。画面をまたいで持ち越したい状態はここに置かない。
 final FutureProvider<FormDataModel> formDataProvider =
     FutureProvider<FormDataModel>((Ref ref) {
-  return ref.watch(confirmRepositoryProvider).load();
-});
+      return ref.watch(confirmRepositoryProvider).load();
+    });
 
 /// 送信の実行と、その最中かどうか。
 ///

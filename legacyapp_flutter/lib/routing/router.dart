@@ -26,9 +26,7 @@ class AppRouter {
   /// 積むため、`/confirm` を渡すと2画面になる。add-to-appでは画面スタックの底で
   /// 戻ったらネイティブ側のコンテナに抜けるのが正しい。
   List<Route<Object?>> onGenerateInitialRoutes(String initialRoute) {
-    return <Route<Object?>>[
-      onGenerateRoute(RouteSettings(name: initialRoute)),
-    ];
+    return <Route<Object?>>[onGenerateRoute(RouteSettings(name: initialRoute))];
   }
 
   Route<Object?> onGenerateRoute(RouteSettings settings) {

@@ -107,6 +107,9 @@ flutter:analyze:
     - cd legacyapp_flutter
     - flutter pub get
   script:
+    # 整形の差分をエラーにする。dart format は書式を機械的に決めるため、
+    # レビューで書式を議論しないための土台になる。
+    - dart format --output=none --set-exit-if-changed lib test pigeons
     - flutter analyze
 
 flutter:test:

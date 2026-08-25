@@ -21,11 +21,12 @@ class FormDataModel {
   final String message;
 
   Map<String, String> toMap() => <String, String>{
-        'name': name,
-        'email': email,
-        'message': message,
-      };
+    'name': name,
+    'email': email,
+    'message': message,
+  };
 
   @override
-  String toString() => 'FormDataModel(name: $name, email: $email, message: $message)';
+  String toString() =>
+      'FormDataModel(name: $name, email: $email, message: $message)';
 }

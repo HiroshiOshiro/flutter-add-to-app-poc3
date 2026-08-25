@@ -13,9 +13,7 @@ Widget _host(
   Locale locale = const Locale('en'),
 }) {
   return ProviderScope(
-    overrides: [
-      confirmRepositoryProvider.overrideWithValue(repository),
-    ],
+    overrides: [confirmRepositoryProvider.overrideWithValue(repository)],
     child: MaterialApp(
       locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,

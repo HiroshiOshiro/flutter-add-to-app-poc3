@@ -24,11 +24,12 @@ class DefaultConfirmRepository implements ConfirmRepository {
   DefaultConfirmRepository({
     LegacyStoreService? legacyStore,
     ApiClient? apiClient,
-  })  : _legacyStore = legacyStore ?? LegacyStoreService(),
-        _apiClient = apiClient ?? ApiClient();
+  }) : _legacyStore = legacyStore ?? LegacyStoreService(),
+       _apiClient = apiClient ?? ApiClient();
 
-  static final Uri _submitUri =
-      Uri.parse('https://jsonplaceholder.typicode.com/posts');
+  static final Uri _submitUri = Uri.parse(
+    'https://jsonplaceholder.typicode.com/posts',
+  );
 
   final LegacyStoreService _legacyStore;
   final ApiClient _apiClient;
