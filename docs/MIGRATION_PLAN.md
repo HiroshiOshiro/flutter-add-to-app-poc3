@@ -170,7 +170,7 @@ lib/
   data/services/api_client.dart                   HTTP
   data/services/legacy_store_service.dart         チャネル
   data/services/navigation_service.dart           チャネル
-  domain/models/form_data.dart                    モデル
+  domain/models/form_data.dart                    モデル（Freezed）
 ```
 
 **「取得はチャネル・送信はFlutterのHTTP」という分かれ目はRepositoryに閉じている。**
@@ -309,3 +309,4 @@ Flutterへ移るたびに減る。
 | FVMの採用を撤回 | 使えない環境だったため。`.flutter-version` + 検査スクリプト + `pubspec.yaml` の範囲指定に差し替えた |
 | `MethodChannel` の手書きから Pigeon へ（`legacy_store` のみ） | 名前と型の食い違いをコンパイルエラーにするため |
 | `ChangeNotifier` から Riverpod へ | 差し替え点をProviderに集約するため。`AsyncValue` により状態の enum が不要になった |
+| モデルを Freezed で生成 | `copyWith` / `==` / `toJson` の手書きをやめるため。項目を足したときの直し漏れを防ぐ |

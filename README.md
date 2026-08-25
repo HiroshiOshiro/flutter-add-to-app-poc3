@@ -76,6 +76,14 @@ dart format lib/data/services/generated
 
 Pigeonの出力は `dart format` の結果と一致しないため、生成後に整形する。
 
+モデル（`domain/models/`）は Freezed で生成している。定義を変更したら再生成する。
+生成物はコミット済みのため、変更しない限り実行は不要。
+
+```bash
+cd legacyapp_flutter
+dart run build_runner build
+```
+
 ### Android Studio
 
 `legacy_android` を開いてビルドする。

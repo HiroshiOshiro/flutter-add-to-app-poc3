@@ -39,7 +39,7 @@ class DefaultConfirmRepository implements ConfirmRepository {
 
   @override
   Future<bool> submit(FormDataModel data) =>
-      _apiClient.postJson(_submitUri, data.toMap());
+      _apiClient.postJson(_submitUri, data.toJson());
 }
 
 /// モジュール単体での実行とテスト用。
