@@ -493,6 +493,17 @@ if (project.hasProperty('targetAbi')) {
 ./gradlew assembleDebug -PtargetAbi=x86_64
 ```
 
+**条件**: 絞ったABIは**インストール先の端末と一致していること**。CIのように
+ビルドするだけなら何でもよいが、実機やエミュレータに入れるなら合わせる。
+
+```
+adb: failed to install app-debug.apk:
+  Failure [INSTALL_FAILED_NO_MATCHING_ABIS: Failed to extract native libraries]
+```
+
+Apple Silicon上のAndroidエミュレータは `arm64-v8a`。`x86_64` で絞ったAPKは
+入らない。
+
 ### 3.5 確認
 
 ```bash

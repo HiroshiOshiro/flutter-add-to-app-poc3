@@ -337,6 +337,33 @@ Flutterエンジンの寿命と同じ**で、ネイティブから開き直す�
 理由:
 ```
 
+#### モデルの定義にコード生成を使うか
+
+データクラスの `copyWith` / `==` / `hashCode` / `toJson` は手書きすると量が多く、
+項目を足したときの直し漏れが起きる。[Freezed](https://pub.dev/packages/freezed)
+が生成する。
+
+```bash
+dart pub add freezed_annotation json_annotation
+dart pub add --dev build_runner freezed json_serializable
+dart run build_runner build
+```
+
+**条件**: 生成物をコミットするかを決める。コミットしないなら、CIとチェックアウト
+直後に `build_runner` を回す手順が要る。
+
+**注意**: `--delete-conflicting-outputs` は build_runner 2.16.0 で**削除された**。
+付けても警告が出て無視される。既存の記事の多くはこの引数を付けている。
+
+チャネルの生成（5.3節のPigeon）を併用する場合、生成器が2系統になる。Pigeonは
+`build_runner` を使わない独立したCLIのため競合しないが、**生成コマンドが2つに
+なる**ことは把握しておく。
+
+```
+選択:
+理由:
+```
+
 #### コーディング規約
 
 **Flutterには標準がある。決めるのは「標準に足すかどうか」だけ。**
