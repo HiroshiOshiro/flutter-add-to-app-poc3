@@ -12,8 +12,12 @@ import 'package:pigeon/pigeon.dart';
 /// 生成コマンド:
 /// ```bash
 /// cd legacyapp_flutter
-/// fvm dart run pigeon --input pigeons/legacy_store.dart
+/// dart run pigeon --input pigeons/legacy_store.dart
+/// dart format lib/data/services/generated
 /// ```
+///
+/// Pigeonの出力は `dart format` の結果と一致しないため、生成後に整形する。
+/// しないとCIの整形チェックが落ちる。
 @ConfigurePigeon(
   PigeonOptions(
     dartOut: 'lib/data/services/generated/legacy_store.g.dart',

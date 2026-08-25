@@ -1005,6 +1005,30 @@ class MyFlutterActivity : FlutterActivity() {
 定義からDart / Java / Kotlin / Swift / Objective-Cのコードを生成するため、
 食い違いがコンパイルエラーになる。
 
+導入は2ステップ。**`dev_dependencies` に入れる**（生成に使うだけで、アプリの
+実行時には要らない）。
+
+```bash
+cd my_flutter_module
+flutter pub add --dev pigeon
+```
+
+定義ファイルを `pigeons/` に置き、生成する。
+
+```bash
+dart run pigeon --input pigeons/<name>.dart
+```
+
+**条件**: **Pigeonの出力は `dart format` の結果と一致しない。** Pigeonは自前の
+整形をかけるため、`dart format` で整形をCIが検査している場合、生成のたびに
+差分が戻って失敗する。
+
+**対処**: 生成のあとに整形する。
+
+```bash
+dart run pigeon --input pigeons/<name>.dart && dart format <dartOutのディレクトリ>
+```
+
 **条件**: 生成先をモジュールの `.android/` `.ios/` にしない。あれは
 `flutter pub get` のたびに再生成される足場のため、生成コードが消える。
 ホストアプリのソースツリーへ出す。
