@@ -71,7 +71,10 @@ flutter pub get
 ```bash
 cd legacyapp_flutter
 dart run pigeon --input pigeons/legacy_store.dart
+dart format lib/data/services/generated
 ```
+
+Pigeonの出力は `dart format` の結果と一致しないため、生成後に整形する。
 
 ### Android Studio
 
