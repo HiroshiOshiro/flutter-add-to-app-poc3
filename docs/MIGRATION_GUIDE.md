@@ -43,9 +43,11 @@
 | 対象 | 要件 | 確認コマンド | 期待する結果 |
 |---|---|---|---|
 | Flutter SDK | iOSでSPM方式を使う場合 3.44 以上 | `flutter build --help` | 一覧に `swift-package` がある |
-| Android: Gradle | 8.14 以上 | `./gradlew -version` | `Gradle 8.14` 以上 |
+| Android: Gradle | 8.14.0 以上 | `./gradlew -version` | `Gradle 8.14` 以上 |
 | Android: Android Gradle Plugin | 8.11.1 以上 | ルートの `build.gradle` の `classpath 'com.android.tools.build:gradle:...'` | `8.11.1` 以上 |
+| Android: Kotlin Gradle Plugin | 2.2.20 以上（**ホストがKotlinを使う場合**） | 同上 | `2.2.20` 以上 |
 | Android: Gradleを動かすJDK | 17 以上 | `./gradlew -version` | `Launcher JVM` が `17` 以上 |
+| Android: minSdk | 23 以上 | `app/build.gradle` | `minSdk` が `23` 以上 |
 | Android: AndroidX | 必須 | `grep useAndroidX gradle.properties` | `android.useAndroidX=true` |
 | iOS: Xcode | 15.0 以上 | `xcodebuild -version` | `Xcode 15.0` 以上 |
 | iOS: Deployment Target | 15.0 以上 | 下記 | ホストアプリの設定値がこれ以上 |
@@ -109,6 +111,27 @@ grep flutter.sdk my_flutter_module/.android/local.properties
 
 素の `flutter` でこれらを実行すると個人のSDKに書き戻るが、**ビルドは通るため
 気づかない。** SDKを切り替えたら必ず両方を実行し直す。
+
+#### 失敗する下限と、警告になる下限は別
+
+Flutterは各依存に **error（これ未満で失敗）** と **warn（これ未満で警告）** の
+2つの閾値を持つ。上の表はerror側。警告側は**次の引き上げ予告**で、いま満たして
+いなくてもビルドは通るが、Flutter SDKを上げた時点で失敗に変わる。
+
+| 対象 | 失敗 | 警告 |
+|---|---|---|
+| Gradle | 8.14.0 | 9.1.0 |
+| Android Gradle Plugin | 8.11.1 | 9.0.1 |
+| Kotlin Gradle Plugin | 2.2.20 | 2.3.20 |
+| JDK | 17 | 17 |
+| minSdk | 23 | 24 |
+
+**確認**: 値はSDKに定数として書かれている。着手時はここを見るのが確実。
+
+```bash
+grep "internal val \(error\|warn\)" \
+  "$(dirname "$(dirname "$(command -v flutter)")")/packages/flutter_tools/gradle/src/main/kotlin/DependencyVersionChecker.kt"
+```
 
 満たさない場合、Flutter Gradleプラグインが下限を明示したエラーを出す。
 
