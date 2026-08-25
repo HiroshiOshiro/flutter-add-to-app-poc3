@@ -52,9 +52,7 @@ class _SlowRepository implements ConfirmRepository {
 /// Repositoryを差し替えたコンテナを作る。
 ProviderContainer _container(ConfirmRepository repository) {
   final ProviderContainer container = ProviderContainer(
-    overrides: [
-      confirmRepositoryProvider.overrideWithValue(repository),
-    ],
+    overrides: [confirmRepositoryProvider.overrideWithValue(repository)],
   );
   addTearDown(container.dispose);
   return container;
@@ -64,7 +62,10 @@ void main() {
   test('formDataProvider は取得した値を返す', () async {
     final ProviderContainer container = _container(FakeConfirmRepository());
 
-    expect(container.read(formDataProvider), isA<AsyncLoading<FormDataModel>>());
+    expect(
+      container.read(formDataProvider),
+      isA<AsyncLoading<FormDataModel>>(),
+    );
 
     final FormDataModel data = await container.read(formDataProvider.future);
     expect(data.name, 'Taro');
@@ -85,24 +86,34 @@ void main() {
     final ProviderContainer container = _container(repository);
     await container.read(formDataProvider.future);
 
-    expect(await container.read(submitControllerProvider.notifier).submit(), isTrue);
+    expect(
+      await container.read(submitControllerProvider.notifier).submit(),
+      isTrue,
+    );
     expect(repository.submitted.single.name, 'Taro');
     expect(container.read(submitControllerProvider), isFalse);
   });
 
   test('submit は失敗レスポンスをfalseで返す', () async {
-    final ProviderContainer container =
-        _container(FakeConfirmRepository(submitResult: false));
+    final ProviderContainer container = _container(
+      FakeConfirmRepository(submitResult: false),
+    );
     await container.read(formDataProvider.future);
 
-    expect(await container.read(submitControllerProvider.notifier).submit(), isFalse);
+    expect(
+      await container.read(submitControllerProvider.notifier).submit(),
+      isFalse,
+    );
   });
 
   test('submit は例外もfalseとして返す', () async {
     final ProviderContainer container = _container(_SubmitThrowsRepository());
     await container.read(formDataProvider.future);
 
-    expect(await container.read(submitControllerProvider.notifier).submit(), isFalse);
+    expect(
+      await container.read(submitControllerProvider.notifier).submit(),
+      isFalse,
+    );
     expect(container.read(submitControllerProvider), isFalse);
   });
 
@@ -111,7 +122,10 @@ void main() {
     container.listen(formDataProvider, (_, _) {});
     await pumpEventQueue();
 
-    expect(await container.read(submitControllerProvider.notifier).submit(), isFalse);
+    expect(
+      await container.read(submitControllerProvider.notifier).submit(),
+      isFalse,
+    );
   });
 
   test('送信中の呼び出しは無視される', () async {
@@ -119,8 +133,9 @@ void main() {
     final ProviderContainer container = _container(repository);
     await container.read(formDataProvider.future);
 
-    final SubmitController controller =
-        container.read(submitControllerProvider.notifier);
+    final SubmitController controller = container.read(
+      submitControllerProvider.notifier,
+    );
     final Future<bool> first = controller.submit();
     final bool second = await controller.submit();
 

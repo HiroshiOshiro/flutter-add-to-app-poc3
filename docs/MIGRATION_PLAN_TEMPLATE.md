@@ -337,6 +337,42 @@ Flutterエンジンの寿命と同じ**で、ネイティブから開き直す�
 理由:
 ```
 
+#### コーディング規約
+
+**Flutterには標準がある。決めるのは「標準に足すかどうか」だけ。**
+
+| 対象 | 標準 | 備考 |
+|---|---|---|
+| 静的解析 | `package:flutter_lints` | `flutter create` が既定で入れる。Flutterチームが保守する |
+| 書式 | `dart format` | 設定項目がほぼ無く、機械的に決まる |
+| 命名・書き方 | [Effective Dart](https://dart.dev/effective-dart) | 解析で機械的に検出できない部分の指針 |
+
+**条件**: `flutter_lints` を入れただけでは書式は強制されない。`dart format` は
+別のコマンドで、**CIで差分をエラーにしないと揃わない**。
+
+```bash
+dart format --output=none --set-exit-if-changed lib test
+```
+
+**任意**: Dartの厳格モードは暗黙の `dynamic` を潰す。既存コードが型を明示して
+いれば、あとから入れても差分が出ない。
+
+```yaml
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+```
+
+より厳しい既製のルールセット（`very_good_analysis` など）もあるが、**標準から
+外れるほど、外部の記事やサンプルとの差異を説明する手間が増える。**
+
+```
+選択:
+理由:
+```
+
 ### 5.2 ルーティング
 
 **Dartのエントリポイントは `main()` ひとつに固定する。** 画面ごとに増やすと、

@@ -17,8 +17,7 @@ import 'package:pigeon/pigeon.dart';
 @ConfigurePigeon(
   PigeonOptions(
     dartOut: 'lib/data/services/generated/legacy_store.g.dart',
-    javaOut:
-        '../legacy_android/app/src/main/java/com/example/legacyapp/flutter/LegacyStorePigeon.java',
+    javaOut: '../legacy_android/app/src/main/java/com/example/legacyapp/flutter/LegacyStorePigeon.java',
     javaOptions: JavaOptions(
       package: 'com.example.legacyapp.flutter',
       className: 'LegacyStorePigeon',
@@ -32,11 +31,7 @@ import 'package:pigeon/pigeon.dart';
 /// 項目ごとにメソッドを分けず**まとめて返す**（手順6.1節）。項目が増えるたびに
 /// ネイティブ側の変更が必要になるのを避けるため。
 class FormDataDto {
-  FormDataDto({
-    required this.name,
-    required this.email,
-    required this.message,
-  });
+  FormDataDto({required this.name, required this.email, required this.message});
 
   final String name;
   final String email;

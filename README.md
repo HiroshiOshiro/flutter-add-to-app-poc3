@@ -136,8 +136,13 @@ flutter run -t lib/main_dev.dart -d <device-id>
 
 ```bash
 cd legacyapp_flutter
+dart format --output=none --set-exit-if-changed lib test pigeons
 flutter analyze && flutter test
 ```
+
+静的解析は `package:flutter_lints` に Dart の厳格モード（`strict-casts` /
+`strict-inference` / `strict-raw-types`）を足している。書式は `dart format` で、
+CIが差分をエラーにする。
 
 ## CI
 

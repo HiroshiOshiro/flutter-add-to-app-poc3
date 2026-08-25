@@ -7,9 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// このチャネルを使うのはネイティブ画面へ抜けるときだけ。全画面のFlutter化が
 /// 完了した時点でこのチャネル自体が不要になる。
 class NavigationService {
-  const NavigationService([
-    this._channel = const MethodChannel(channelName),
-  ]);
+  const NavigationService([this._channel = const MethodChannel(channelName)]);
 
   static const String channelName = 'com.example.legacyapp/navigation';
 
@@ -20,10 +18,9 @@ class NavigationService {
   /// [screen] はネイティブ側が解釈する論理的な画面名。Flutter側は遷移方法
   /// （Activityの起動かpushViewControllerか）を知らない。
   Future<void> openNative(String screen) {
-    return _channel.invokeMethod<void>(
-      'openNative',
-      <String, Object?>{'screen': screen},
-    );
+    return _channel.invokeMethod<void>('openNative', <String, Object?>{
+      'screen': screen,
+    });
   }
 }
 

@@ -1,6 +1,13 @@
 include: package:flutter_lints/flutter.yaml
 
 analyzer:
+  # Dartが推奨する厳格モード。暗黙のdynamicを潰す。
+  # https://dart.dev/tools/analysis#enabling-additional-type-checks
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+
   exclude:
     - build/**
     - android/**

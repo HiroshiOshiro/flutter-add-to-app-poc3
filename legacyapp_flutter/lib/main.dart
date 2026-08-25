@@ -27,11 +27,7 @@ void main() {
 }
 
 class MainApp extends StatelessWidget {
-  const MainApp({
-    super.key,
-    required this.initialRoute,
-    required this.router,
-  });
+  const MainApp({super.key, required this.initialRoute, required this.router});
 
   /// ネイティブから渡された初期ルート。
   final String initialRoute;
