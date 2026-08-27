@@ -55,7 +55,8 @@ variables:
 # （!reference は13.x、extends は11.3で追加されたばかりのため使わない）
 .flutter_install: &flutter_install |
   set -e
-  # バージョンの唯一の情報源は .flutter-version。
+  # バージョンの唯一の情報源は .flutter-version（サポートする下限）。
+  # CIは下限そのものでビルドする。新しいSDKにしか無いAPIを使うと落ちるため。
   # 11.3では variables: に動的な値を書けないため、ここで解決する。
   FLUTTER_VERSION=$(tr -d '[:space:]' < .flutter-version)
   if [ -z "$FLUTTER_VERSION" ]; then
