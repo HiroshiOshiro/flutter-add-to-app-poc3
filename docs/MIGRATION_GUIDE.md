@@ -506,9 +506,49 @@ Apple Silicon上のAndroidエミュレータは `arm64-v8a`。`x86_64` で絞っ
 
 ### 3.5 確認
 
+**ビルドが通るだけでは組み込めた証明にならない。** 設定を書き間違えても、
+Flutterを使っていないアプリはそのままビルドが通る。以下の4つで確かめる。
+
+**1. サブプロジェクトとして見えるか**（source module 方式）
+
 ```bash
-cd MyAndroidApp
-./gradlew assembleDebug
+./gradlew projects
+```
+
+```
+Root project 'MyApp'
++--- Project ':app'
+\--- Project ':flutter'        ← これ
+```
+
+**2. ホストアプリが依存しているか**
+
+```bash
+./gradlew :app:dependencies --configuration debugRuntimeClasspath | grep "project :flutter"
+```
+
+**3. APKに実体が入っているか**
+
+```bash
+unzip -l app/build/outputs/apk/debug/app-debug.apk \
+  | grep -E "libflutter\.so|flutter_assets"
+```
+
+```
+assets/flutter_assets/AssetManifest.bin
+assets/flutter_assets/isolate_snapshot_data
+lib/arm64-v8a/libflutter.so
+```
+
+**4. アプリが起動するか**
+
+**Flutter画面を出さずに**起動する。組み込みが壊れているとネイティブライブラリの
+ロードで落ちるため、既存画面だけでも検出できる。
+
+```bash
+adb logcat -c
+adb shell am start -n <applicationId>/.MainActivity
+adb logcat -d -s AndroidRuntime:E
 ```
 
 ---
@@ -713,11 +753,43 @@ Release構成には `_dartVmService._tcp` を含めない。Build Settings の
 
 ### 4.5 確認
 
+Androidと同じく、**ビルドが通るだけでは足りない。**
+
+**1. パッケージが解決されるか**（SPM方式）
+
 ```bash
-cd MyiOSApp
-xcodebuild -workspace MyApp.xcworkspace -scheme MyApp \
-  -sdk iphonesimulator -configuration Debug \
-  -destination "generic/platform=iOS Simulator" build
+xcodebuild -project MyApp.xcodeproj -scheme MyApp -resolvePackageDependencies
+```
+
+```
+Resolved source packages:
+  FlutterNativeIntegration: .../build/ios/SwiftPackages/FlutterNativeIntegration
+  FlutterPluginRegistrant: ...
+  FlutterNativeTools: ...
+```
+
+**2. アプリバンドルに実体が入っているか**
+
+```bash
+ls MyApp.app/Frameworks/
+ls MyApp.app/Frameworks/App.framework/flutter_assets/
+```
+
+```
+App.framework      ← Dartのコードとアセット
+Flutter.framework  ← エンジン
+```
+
+**`Flutter.framework` だけあって `App.framework` が無い場合**、エンジンは
+埋め込まれているがDartのコードが入っていない。ビルドフェーズの
+`flutter_integration.sh assemble` が動いていない（4.2-A節）。
+
+**3. アプリが起動するか**
+
+**Flutter画面を出さずに**起動する。
+
+```bash
+xcrun simctl launch <udid> <bundle-id>
 ```
 
 ---
