@@ -51,7 +51,7 @@
 
 | 項目 | 要件 | 現状値 | 対応 |
 |---|---|---|---|
-| Flutter SDK | iOSでSPMを使うなら3.44以上 | 3.47.1 | — |
+| Flutter SDK | iOSでSPMを使うなら3.44以上 | **3.47.0 以上**をサポート（手元は3.47.1） | — |
 | Gradle | 8.14以上 | **8.9** | **8.14.3 へ更新** |
 | Android Gradle Plugin | 8.11.1以上 | **8.7.0** | **8.11.1 へ更新** |
 | Gradleを動かすJDK | 17以上 | 21.0.10 | — |
@@ -278,7 +278,7 @@ Flutterへ移るたびに減る。
 | ビルド時間 | **未測定**（9節） |
 | CI/CD | GitLab CI を追加。解析・テスト・Android / iOS ビルドの4ジョブ。`source module` のため、Androidのジョブにも Flutter SDK と `.android/include_flutter.groovy` の生成が要る。**共有Runnerのディスクが足りず、ABIを1つに絞る必要があった** |
 | デバッグ環境 | iOSは `flutter attach` の自動探索が働かず、`--debug-url` を渡す。ローカルネットワーク権限も追加済み。手順は `DEBUGGING.md` |
-| Flutter SDKのバージョン | **3.47.1 に固定。** 情報源は `.flutter-version`、CIもここを読む。バージョンマネージャは使えないため、`tools/check-flutter-version.sh` と `pubspec.yaml` の範囲指定で担保する |
+| Flutter SDKのバージョン | **3.47.0 以上**をサポート。情報源は `.flutter-version`（下限）で、CIもここを読み**下限そのものでビルドする**。バージョンマネージャは使えないため、`tools/check-flutter-version.sh` と `pubspec.yaml` の下限指定で担保する |
 | チームのスキル | **未決定**（9節） |
 | 既存ネイティブコードへの変更 | 2件。`BaseActivity.sFormData` の可視性を `public` に広げた（Flutter統合コードから参照するため）、ActionBar用のテーマ `FlutterScreenTheme` を追加した |
 

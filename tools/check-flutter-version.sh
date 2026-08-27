@@ -1,12 +1,12 @@
 #!/bin/sh
-# 手元のFlutter SDKが .flutter-version と一致するか調べる。
+# 手元のFlutter SDKが .flutter-version の下限を満たすか調べる。
 #
-# FVMのようなバージョンマネージャを使わない構成のため、一致は自動では保たれない。
-# ビルドが通ってしまい気づかないので、明示的に確認する。
+# .flutter-version は「サポートする下限」。これ以上なら何でもよい。
+# CIはこの下限そのものでビルドする。新しいSDKにしか無いAPIを使うと落ちるため。
 set -e
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-EXPECTED=$(tr -d '[:space:]' < "$ROOT/.flutter-version")
+MINIMUM=$(tr -d '[:space:]' < "$ROOT/.flutter-version")
 ACTUAL=$(flutter --version 2>/dev/null | sed -n '1s/^Flutter \([^ ]*\).*/\1/p')
 
 if [ -z "$ACTUAL" ]; then
@@ -14,13 +14,14 @@ if [ -z "$ACTUAL" ]; then
   exit 1
 fi
 
-if [ "$EXPECTED" != "$ACTUAL" ]; then
+# 並べ替えて先頭が下限のままなら ACTUAL >= MINIMUM
+if [ "$(printf '%s\n%s\n' "$MINIMUM" "$ACTUAL" | sort -V | head -1)" != "$MINIMUM" ]; then
   cat >&2 <<MSG
-error: Flutter SDK のバージョンが一致しない
-  期待 (.flutter-version): $EXPECTED
-  実際 (flutter --version): $ACTUAL
+error: Flutter SDK が下限を満たしていない
+  下限 (.flutter-version): $MINIMUM
+  手元 (flutter --version): $ACTUAL
 
-$EXPECTED に切り替えてから、生成物を作り直すこと:
+$MINIMUM 以上に切り替えてから、生成物を作り直すこと:
   cd legacyapp_flutter
   flutter pub get
   flutter build swift-package --platform ios
@@ -28,4 +29,4 @@ MSG
   exit 1
 fi
 
-echo "Flutter $ACTUAL (.flutter-version と一致)"
+echo "Flutter $ACTUAL (下限 $MINIMUM を満たす)"
