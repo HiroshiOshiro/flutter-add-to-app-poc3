@@ -187,6 +187,32 @@ Kotlin / Swiftで書ける。混在させる場合、以下の設定が前提に
 
 同一Gradleモジュール内でJavaとKotlinは共存でき、相互に呼び出せる。
 
+**条件**: ホストアプリがKotlinを使っていない場合、**KGPの追加が要る。**
+入っていないとKotlinのファイルはコンパイルされない。バージョンの下限は0.2節。
+
+```groovy
+// ルートの build.gradle
+buildscript {
+    dependencies {
+        classpath 'com.android.tools.build:gradle:<version>'
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:<version>'
+    }
+}
+```
+
+```groovy
+// app/build.gradle
+apply plugin: 'com.android.application'
+apply plugin: 'org.jetbrains.kotlin.android'
+```
+
+**確認**: `compileDebugKotlin` タスクが現れる。Kotlinのファイルがまだ無ければ
+`NO-SOURCE` になる。
+
+```
+> Task :app:compileDebugKotlin NO-SOURCE
+```
+
 **条件**: JavaとKotlinのJVMターゲットが一致していること。
 
 **確認**: 不一致だと `Inconsistent JVM-target compatibility detected` で
@@ -195,8 +221,23 @@ Kotlin / Swiftで書ける。混在させる場合、以下の設定が前提に
 ```groovy
 android {
     compileOptions { sourceCompatibility JavaVersion.VERSION_1_8 }
-    kotlinOptions { jvmTarget = '1.8' }
+
+    kotlin {
+        compilerOptions {
+            jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_1_8
+        }
+    }
 }
+```
+
+`kotlinOptions { jvmTarget = '1.8' }` は非推奨。KGP 2.x では上記の
+`compilerOptions` を使う。
+
+**Pigeonを使っている場合**、生成先も切り替えられる（6.5節）。
+
+```dart
+kotlinOut: '.../LegacyStorePigeon.kt',
+kotlinOptions: KotlinOptions(package: 'com.example.myapp.flutter'),
 ```
 
 **iOS**
