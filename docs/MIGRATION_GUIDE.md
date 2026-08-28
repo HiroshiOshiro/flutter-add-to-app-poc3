@@ -116,7 +116,30 @@ grep flutter.sdk my_flutter_module/.android/local.properties
 
 Flutterは各依存に **error（これ未満で失敗）** と **warn（これ未満で警告）** の
 2つの閾値を持つ。上の表はerror側。警告側は**次の引き上げ予告**で、いま満たして
-いなくてもビルドは通るが、Flutter SDKを上げた時点で失敗に変わる。
+いなくてもビルドは通る。
+
+**条件**: **警告に従って上げられるとは限らない。** 警告は「いずれ必要になる」と
+いう予告であって、いまその値で動く保証ではない。**依存ごとに個別に確かめる。**
+
+実例（Flutter 3.47.1）。Gradleは警告の値まで上げられたが、AGPは上げられなかった。
+
+| 依存 | 警告 | 実際 |
+|---|---|---|
+| Gradle | 9.1.0 | **上げられる**。AGPは据え置きでよい |
+| Android Gradle Plugin | 9.0.1 | **上げられない**（下記） |
+
+AGP 9系はKotlinを内蔵するが、その版が **2.2.10** で、Flutterが要求するKGPの
+下限 **2.2.20** を下回る。KGPを明示的に2.2.20へ上げるとAGP 9が削除したAPIを
+参照して失敗し、依存チェックを飛ばすとFlutterのGradleプラグイン自体が
+`NullPointerException` で落ちる。
+
+```
+Error: Your project's Kotlin version (2.2.10) is lower than Flutter's
+minimum supported version of 2.2.20.
+```
+
+**対処**: 上げられる依存だけ上げる。上げられないものは、Flutter側が対応する
+まで警告のまま運用する。error側に達していなければビルドは通る。
 
 | 対象 | 失敗 | 警告 |
 |---|---|---|

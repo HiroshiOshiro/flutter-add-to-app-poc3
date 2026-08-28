@@ -933,3 +933,55 @@ BUILD SUCCESSFUL in 4m 19s
 **3.4節の「（任意）」を外した。** アプリサイズを削るための任意項目として書いて
 いたが、**ディスクが限られた環境では必須**だった。症状とAPKの内訳を調べる
 コマンドも追加した。
+
+---
+
+## 補足: Gradle 9.1.0 への更新
+
+CIのログに出ていた警告への対応。
+
+```
+Warning: Flutter support for your project's Gradle version (8.14.3) will soon be
+dropped. Please upgrade to at least 9.1.0 soon.
+```
+
+### 結果
+
+**Gradleだけ上げられた。** AGPは据え置き。
+
+| 依存 | before | after |
+|---|---|---|
+| Gradle | 8.14.3 | **9.1.0** |
+| Android Gradle Plugin | 8.11.1 | 8.11.1（据え置き） |
+
+Gradleの警告は消え、AGPの警告だけが残る。
+
+### AGPを上げられなかった経緯
+
+最初にGradleとAGPを同時に上げたため、AGP側の問題に巻き込まれた。切り分けると
+Gradleだけは通る。
+
+| 試したこと | 結果 |
+|---|---|
+| AGP 9.0.1 | `Kotlin version (2.2.10) is lower than Flutter's minimum 2.2.20` |
+| AGP 9.3.2 | `Minimum supported Gradle version is 9.5.0` |
+| Gradle 9.5.0 + AGP 9.3.2 | やはり Kotlin 2.2.10 |
+| KGP 2.2.20 を明示 | `KotlinAndroidTarget ... com/android/build/gradle/api/BaseVariant` |
+| `-PskipDependencyChecks=true` | Flutterのプラグインが `NullPointerException` |
+
+**AGP 9系はKotlinを内蔵し、その版が2.2.10。** Flutterが要求するKGPの下限2.2.20を
+下回る。KGPを明示的に上げるとAGP 9が削除したAPIを参照して失敗する。
+
+最後の行が決定的で、**ポリシー上の拒否ではなく実際に非互換**だと分かる。
+
+### ガイドへのフィードバック
+
+**0.2節の記述が誤っていた。** 「移行の途中でSDKを上げる予定があるなら、警告の値で
+満たしておく」と書いていたが、**警告に従って上げられるとは限らない。**
+依存ごとに個別に確かめる必要がある。実例とともに書き直した。
+
+### 残っている点
+
+`Deprecated Gradle features were used in this build, making it incompatible with
+Gradle 10.` に変わった。Gradle 8のときは「Gradle 9と非互換」だったので、同じ性質の
+予告が1つ先送りされただけ。
