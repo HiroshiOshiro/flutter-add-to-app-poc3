@@ -985,3 +985,27 @@ Gradleだけは通る。
 `Deprecated Gradle features were used in this build, making it incompatible with
 Gradle 10.` に変わった。Gradle 8のときは「Gradle 9と非互換」だったので、同じ性質の
 予告が1つ先送りされただけ。
+
+### 追記: 9.1.0 を撤回した
+
+**Android Studio でビルドできなくなったため 8.14.3 に戻した。**
+
+| 環境 | 9.1.0 での結果 |
+|---|---|
+| コマンドライン（`./gradlew`） | 成功。新規cloneからも成功 |
+| **Android Studio** | **失敗** |
+
+**原因は未特定。** コマンドライン側では再現しなかったため、IDE側の対応状況か
+キャッシュが疑われるが、確かめられていない。
+
+KGP 2.2.20 は 8.14.3 でもそのまま動く（この差し戻しはKotlin化に影響しない）。
+ただしGradle 8.14.3 の埋め込みKotlinは 2.0.21 のため、次の警告が出る。
+
+```
+WARNING: Unsupported Kotlin plugin version.
+The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `2.0.21`
+that might work differently than in the requested version `2.2.20`.
+```
+
+**教訓**: ビルドツールの更新は、CLIで通っただけでは確認として足りない。
+**IDEでも確かめる**（3.5節の確認にIDEを含めるべきだった）。

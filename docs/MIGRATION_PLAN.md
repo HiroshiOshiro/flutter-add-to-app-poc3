@@ -52,7 +52,7 @@
 | 項目 | 要件 | 現状値 | 対応 |
 |---|---|---|---|
 | Flutter SDK | iOSでSPMを使うなら3.44以上 | **3.47.0 以上**をサポート（手元は3.47.1） | — |
-| Gradle | 8.14以上 | **8.9** | **9.1.0 へ更新**（警告側まで） |
+| Gradle | 8.14以上 | **8.9** | **8.14.3 へ更新**。9.1.0（警告側）へ上げたがAndroid Studioでビルドできず差し戻した |
 | Android Gradle Plugin | 8.11.1以上 | **8.7.0** | **8.11.1 へ更新**。警告側（9.0.1）は Flutter 3.47 と非互換のため据え置き |
 | Gradleを動かすJDK | 17以上 | 21.0.10 | — |
 | AndroidX | 必須 | `android.useAndroidX=true` | — |
@@ -311,3 +311,4 @@ Flutterへ移るたびに減る。
 | `MethodChannel` の手書きから Pigeon へ（`legacy_store` のみ） | 名前と型の食い違いをコンパイルエラーにするため |
 | `ChangeNotifier` から Riverpod へ | 差し替え点をProviderに集約するため。`AsyncValue` により状態の enum が不要になった |
 | モデルを Freezed で生成 | `copyWith` / `==` / `toJson` の手書きをやめるため。項目を足したときの直し漏れを防ぐ |
+| Gradle 9.1.0 への更新を撤回 | コマンドラインでは通ったが、Android Studioでビルドできなくなったため。原因は未特定 |
