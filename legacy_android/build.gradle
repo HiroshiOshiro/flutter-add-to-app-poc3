@@ -5,5 +5,8 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:8.11.1'
+        // Flutter統合のコードをKotlinで書くために追加（手順0.3節）。
+        // Flutterが要求する下限は 2.2.20（手順0.2節）。
+        classpath 'org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.20'
     }
 }

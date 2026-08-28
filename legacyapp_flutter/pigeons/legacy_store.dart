@@ -21,11 +21,8 @@ import 'package:pigeon/pigeon.dart';
 @ConfigurePigeon(
   PigeonOptions(
     dartOut: 'lib/data/services/generated/legacy_store.g.dart',
-    javaOut: '../legacy_android/app/src/main/java/com/example/legacyapp/flutter/LegacyStorePigeon.java',
-    javaOptions: JavaOptions(
-      package: 'com.example.legacyapp.flutter',
-      className: 'LegacyStorePigeon',
-    ),
+    kotlinOut: '../legacy_android/app/src/main/java/com/example/legacyapp/flutter/LegacyStorePigeon.kt',
+    kotlinOptions: KotlinOptions(package: 'com.example.legacyapp.flutter'),
     swiftOut: '../legacy_ios/LegacyApp/Sources/LegacyStorePigeon.swift',
     dartPackageName: 'legacyapp_flutter',
   ),
